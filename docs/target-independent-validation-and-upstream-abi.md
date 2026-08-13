@@ -1,5 +1,13 @@
 # Target-independent validation and minimum upstream ABI Contract
 
+Current status: the experimental Verilator fork now emits versioned field and
+storage bindings, `--savable` checkpoint membership, toggle semantic IDs with
+physical alias groups, and final-AST eval calls/accesses/effects. The sidecar
+validates those compiler-owned surfaces. Semantic state roles, byte offsets and
+packing, runtime-context completeness, pointer-free checkpoints, and eval
+schedule/convergence semantics remain `not_provided`; the proposal below is the
+pre-fork evidence that established this boundary.
+
 ## Contract
 
 Outcome:

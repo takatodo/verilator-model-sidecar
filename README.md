@@ -8,8 +8,8 @@ The project deliberately starts outside the Verilator source tree. It combines
 Verilator's parser/elaboration JSON with measured generated C++ layout, while
 keeping the JSON tree—not generated C++ names—as the source of semantic
 identities. An experimental Verilator fork supplies compiler-owned storage,
-checkpoint-membership, and toggle-lowering metadata where released output is
-insufficient.
+checkpoint-membership, toggle-lowering, and final-AST eval metadata where
+released output is insufficient.
 
 ## Current contract
 
@@ -18,7 +18,8 @@ The implemented semantic tracer bullet:
 1. either captures a small model with `verilator --json-only` plus
    `verilator --cc`, or analyzes existing JSON/meta/`obj_dir` artifacts without
    invoking another process;
-2. checks that the producer is Verilator 5.050;
+2. checks Verilator 5.050 on the legacy path, or exact producer agreement between
+   native artifacts on the fork path;
 3. emits a deterministic, versioned `model_manifest.json`;
 4. reconstructs the elaborated instance hierarchy through `CELL.modp`, retaining
    named generate/block scopes;
@@ -32,7 +33,8 @@ The implemented semantic tracer bullet:
 9. optionally joins JSON `COVERTOGGLEDECL` semantics to native compiler-owned
    insertion/update regions, expanding bit/direction identities and preserving
    every Verilator counter alias explicitly without parsing generated C++; and
-10. independently classifies explicit LLVM eval closures as
+10. independently validates compiler-owned final-AST eval metadata and
+    classifies explicit downstream LLVM eval closures as
     `proven_device_clean`, `host_dependent`, or `unknown`, with transitive,
     fail-closed propagation and optional oracle verification.
 
@@ -63,8 +65,10 @@ verilator-model-sidecar probe-layout \
 This native path verifies names, hierarchy, generated member bindings, widths,
 and compiler-measured offsets for the exact generated model. The same manifest
 can authorize toggle storage measurement and semantic-to-physical alias mapping.
-The offsets are not a stable cross-version ABI. Pointer-free checkpoint packing
-and native eval effects remain separate fail-closed capabilities.
+The offsets are not a stable cross-version ABI. The manifest now also provides
+definition-level checkpoint membership and final-AST eval calls, state accesses,
+effects, and fixed-point classifications. Pointer-free checkpoint packing and
+eval schedule/convergence semantics remain explicitly `not_provided`.
 
 When the native manifest contains compiler-owned `--savable` membership,
 definition fields can be expanded onto the stored instances without parsing
@@ -85,18 +89,21 @@ status.
 Physical bindings fail closed as `not_analyzed` unless an explicit measured
 layout is supplied. Coverage mapping likewise fails closed unless an explicit
 native manifest, coverage contract, and layout containing its measured array are
-supplied.
-Checkpoint packing remains `not_analyzed`. Eval effects remain `not_analyzed`
-unless an explicit observation is supplied. A clean classification proves only
-the pinned direct-call LLVM closure under its declared effect policy; the
-current manifest is not a pointer-free state ABI, arbitrary-input memory-safety
-proof, CUDA backend, or stable upstream Verilator API.
+supplied. Checkpoint runtime state and packing remain `not_provided`. Eval
+effects remain `not_analyzed` unless an explicit observation is supplied. For a
+native host region, the sidecar independently recomputes the compiler manifest's
+call-closure fixed point; a downstream device region still requires explicit
+LLVM IR. A clean classification proves only that declared closure under its
+effect policy. The current manifest is not a pointer-free state ABI,
+arbitrary-input memory-safety proof, CUDA backend, or stable upstream Verilator
+API.
 
 ## Requirements
 
 - Python 3.10 or newer
 - Verilator 5.050 for the end-to-end capture smoke test and generated headers
-- The experimental Verilator manifest fork for native coverage lowering
+- The experimental Verilator manifest fork for native storage, checkpoint,
+  coverage, and eval metadata
 - A C++20 compiler for physical-layout measurement
 
 There are no Python runtime dependencies outside the standard library.
@@ -135,11 +142,14 @@ The producer string is explicit because Verilator's JSON metadata does not carry
 the producer version.
 
 ```bash
+native_manifest=/path/to/model-manifest.json
+producer="$(jq -r .producer "$native_manifest")"
+
 verilator-model-sidecar classify-effects \
   --contract contracts/opentitan_uart_eval_effects.json \
-  --ir verilator_host_ir=/path/to/obj_dir/merged.ll \
+  --native-manifest "verilator_native_manifest=$native_manifest" \
   --ir gpu_eval_slice_ir=/path/to/entry_slices/vl_eval_batch_gpu.slice.ll \
-  --producer "Verilator 5.050 2026-07-01 rev v5.050" \
+  --producer "$producer" \
   --oracle contracts/opentitan_uart_eval_effects_oracle.json \
   --output /tmp/opentitan-uart-eval-effects.json
 
@@ -147,7 +157,8 @@ verilator-model-sidecar probe-layout \
   --obj-dir /path/to/obj_dir \
   --adapter contracts/opentitan_uart_semantic_signals.json \
   --coverage-contract contracts/opentitan_uart_toggle_coverage.json \
-  --producer "Verilator 5.050 2026-07-01 rev v5.050" \
+  --native-manifest "$native_manifest" \
+  --producer "$producer" \
   --output /tmp/opentitan-uart-layout.json
 
 verilator-model-sidecar analyze \
@@ -156,25 +167,23 @@ verilator-model-sidecar analyze \
   --tree /path/to/Vsim.tree.json \
   --meta /path/to/Vsim.tree.meta.json \
   --obj-dir /path/to/obj_dir \
-  --producer "Verilator 5.050 2026-07-01 rev v5.050" \
+  --producer "$producer" \
   --adapter contracts/opentitan_uart_semantic_signals.json \
   --layout /tmp/opentitan-uart-layout.json \
-  --physical-oracle contracts/opentitan_uart_physical_oracle.json \
   --coverage-contract contracts/opentitan_uart_toggle_coverage.json \
-  --native-manifest /path/to/model-manifest.json \
-  --coverage-oracle contracts/opentitan_uart_toggle_coverage_oracle.json \
+  --native-manifest "$native_manifest" \
   --effects /tmp/opentitan-uart-eval-effects.json \
   --output /tmp/opentitan-uart-model-manifest.json
 ```
 
-`classify-effects` reads existing textual LLVM IR and invokes no external
-process. It exits nonzero when an expected classification or pinned oracle
-value differs. `analyze` exits nonzero if any declared semantic signal is unresolved,
-ambiguous, or has a different width, or if a physical observation differs from
-its oracle. It also exits nonzero if coverage storage, counts, mappings, or
-fingerprints differ from the coverage oracle. Adapter `drive`/`observe`
-directions remain contract-owned annotations: the JSON AST does not
-independently derive them for internal testbench variables.
+`classify-effects` reads existing native JSON and textual LLVM IR and invokes no
+external process. It exits nonzero when an expected classification or pinned
+oracle value differs. `analyze` exits nonzero if any declared semantic signal is
+unresolved, ambiguous, or has a different width, or if a physical observation
+differs from its oracle. It also exits nonzero if coverage storage, counts,
+mappings, or fingerprints differ from the coverage oracle. Adapter
+`drive`/`observe` directions remain contract-owned annotations: the JSON AST
+does not independently derive them for internal testbench variables.
 
 No absolute build path or timestamp is written to the manifest. Verilator's
 non-deterministic pointer table from `.tree.meta.json` is intentionally excluded
@@ -190,16 +199,20 @@ model_manifest
 │   └── instance hierarchy    implemented
 ├── adapter_verification      optional, semantic names and widths
 ├── physical_bindings         implemented, measured generated C++ ABI
-├── checkpoint_projection     not_analyzed
+├── checkpoint_projection     separate native field-occurrence report
 ├── coverage_mapping          implemented, AST ↔ native lowering ↔ words
-└── eval_effects              implemented, explicit LLVM direct-call closures
+└── eval_effects              native host closure + explicit downstream LLVM
 ```
 
 The OpenTitan UART semantic Contract is measured: all 13 declared signals resolve
 uniquely with matching widths through a fully resolved 39,379-instance hierarchy.
-The physical Contract is also measured: the generated C++ ABI reports a
-2,340,480-byte Syms image, root offset 192, and 13/13 exact field offsets against
-the pinned oracle. The coverage Contract maps 691 AST declarations through 2,764
+The pinned 5.050 physical Contract measures a 2,340,480-byte Syms image. The
+matching current fork model measures 2,337,664 bytes with the same 192-byte root
+offset; this expected cross-version difference is rejected by the old physical
+oracle. Its compiler manifest contains 43,422 field definitions and seven stored
+instances. Native checkpoint projection expands those definitions into 43,417
+stored field occurrences while leaving runtime state and packing
+`not_provided`. The coverage Contract maps 691 AST declarations through 2,764
 native lowering declarations and 2,541 update sites into 16,160 directional
 semantic observations and all 7,842 physical words. Of those physical words,
 4,858 explicitly aggregate aliases. The native path reproduces every existing
@@ -207,9 +220,11 @@ golden metric and fingerprint with no generated C++ coverage parsing. See the
 [semantic evidence](docs/opentitan-uart-semantic-evidence.md),
 [physical evidence](docs/opentitan-uart-physical-evidence.md), and
 [coverage evidence](docs/opentitan-uart-coverage-evidence.md). Eval-effect
-classification separates the unmodified host-dependent eval from the exact
-310-function device-clean GPU entry closure, then revalidates a width-1 eval at
-13/13 semantic signals and 7,842/7,842 coverage words. See the
+classification now obtains the host closure from compiler-owned final-AST
+metadata instead of host generated C++/LLVM reverse engineering. It separates a
+290-function host-dependent main-eval closure from the exact 289-function
+device-clean GPU entry closure, then revalidates a width-1 eval from the same
+fork at 13/13 semantic signals and 7,842/7,842 coverage words. See the
 [eval-effect evidence](docs/opentitan-uart-eval-effect-evidence.md).
 
 The same schema and command surfaces also close on a temporal VeeR AXI
@@ -217,8 +232,8 @@ LSU/DMA bridge and an OpenTitan UART TL-UL stall profile without target-specific
 Python branches. They verify 17/17 and 27/27 semantic/physical bindings, map all
 9,462 and 5,024 native toggle words, reproduce both independent canonical
 manifests, and separate each host-dependent eval from an explicitly clean GPU
-closure. The resulting fixed point and the two remaining upstream ABI artifacts
-are recorded in the
+closure. The original minimum ABI proposal, its fork implementation status, and
+the remaining unprovided semantics are recorded in the
 [target-independent evidence and minimum ABI proposal](docs/target-independent-validation-and-upstream-abi.md).
 
 ## Repository hygiene

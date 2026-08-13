@@ -199,6 +199,6 @@ in JSON, so those declarations are linked by module sequence plus exact source,
 page, and width, while the native lowering record supplies the display label.
 
 This is not a CIRCT probe implementation, a sign-off coverage model, or a
-cross-version Verilator ABI. The next Contract is eval-effect classification:
-`proven_device_clean`, `host_dependent`, or `unknown`, followed by one-eval
-CPU/GPU equivalence for the proven-clean closure.
+cross-version Verilator ABI. The subsequent native eval-effect and one-eval
+Contract is complete in
+[OpenTitan UART native eval-effect evidence](opentitan-uart-eval-effect-evidence.md).
