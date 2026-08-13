@@ -15,6 +15,11 @@ from .physical import (
     probe_physical_layout,
     write_layout_observation,
 )
+from .native import (
+    NativeManifestError,
+    verify_native_adapter,
+    write_native_verification,
+)
 from .effects import (
     EvalEffectError,
     classify_eval_effects,
@@ -128,6 +133,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     effects.add_argument("--oracle", type=Path)
     effects.add_argument("--output", type=Path, required=True)
+
+    native = subparsers.add_parser(
+        "verify-native",
+        help="verify adapter signals from a Verilator-native model manifest",
+    )
+    native.add_argument("--manifest", type=Path, required=True)
+    native.add_argument("--adapter", type=Path, required=True)
+    native.add_argument("--output", type=Path, required=True)
 
     validate = subparsers.add_parser(
         "validate", help="validate a generated model manifest"
@@ -243,6 +256,18 @@ def _classify_effects(arguments: argparse.Namespace) -> int:
     return 1 if observation["status"] == "mismatch" else 0
 
 
+def _verify_native(arguments: argparse.Namespace) -> int:
+    manifest = _read_object(arguments.manifest, "native manifest")
+    adapter = _read_object(arguments.adapter, "adapter")
+    report = verify_native_adapter(manifest, adapter)
+    write_native_verification(arguments.output, report)
+    print(
+        f"wrote {arguments.output}: {report['matched_count']}/"
+        f"{report['signal_count']} adapter signals matched"
+    )
+    return 0 if report["status"] == "matched" else 1
+
+
 def _analyze(arguments: argparse.Namespace) -> int:
     adapter = (
         _read_object(arguments.adapter, "adapter")
@@ -340,6 +365,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _probe_layout(arguments)
         if arguments.command == "classify-effects":
             return _classify_effects(arguments)
+        if arguments.command == "verify-native":
+            return _verify_native(arguments)
         if arguments.command == "validate":
             return _validate(arguments)
     except (
@@ -347,6 +374,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         json.JSONDecodeError,
         SidecarError,
         PhysicalProbeError,
+        NativeManifestError,
         EvalEffectError,
     ) as error:
         print(f"error: {error}", file=sys.stderr)

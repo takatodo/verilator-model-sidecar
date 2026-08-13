@@ -33,6 +33,22 @@ The implemented semantic tracer bullet:
     `proven_device_clean`, `host_dependent`, or `unknown`, with transitive,
     fail-closed propagation and optional oracle verification.
 
+The experimental Verilator fork can additionally emit definition fields plus
+instance-to-symbol-table bindings. `verify-native` consumes that output directly
+and verifies adapter signals without reading Verilator JSON or parsing generated
+C++ headers:
+
+```bash
+verilator-model-sidecar verify-native \
+  --manifest /path/to/model-manifest.json \
+  --adapter contracts/opentitan_uart_semantic_signals.json \
+  --output /tmp/opentitan-uart-native-verification.json
+```
+
+This native path currently verifies names, hierarchy, generated member bindings,
+and widths only. Byte offsets, checkpoint packing, coverage aliases, and eval
+effects remain separate fail-closed capabilities.
+
 Physical bindings fail closed as `not_analyzed` unless an explicit measured
 layout is supplied. Coverage mapping likewise fails closed unless an explicit
 coverage contract and a layout containing its measured array are supplied.

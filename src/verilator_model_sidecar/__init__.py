@@ -28,6 +28,17 @@ from .physical import (
     write_layout_observation,
 )
 
+from .native import (
+    NATIVE_MANIFEST_SCHEMA_VERSION,
+    NATIVE_MANIFEST_SURFACE,
+    NATIVE_VERIFICATION_SCHEMA_VERSION,
+    NATIVE_VERIFICATION_SURFACE,
+    NativeManifestError,
+    validate_native_manifest,
+    verify_native_adapter,
+    write_native_verification,
+)
+
 from .semantic import (
     MANIFEST_SCHEMA_VERSION,
     MANIFEST_SURFACE,
@@ -50,6 +61,11 @@ __all__ = [
     "MANIFEST_SCHEMA_VERSION",
     "MANIFEST_SURFACE",
     "LAYOUT_OBSERVATION_SURFACE",
+    "NATIVE_MANIFEST_SCHEMA_VERSION",
+    "NATIVE_MANIFEST_SURFACE",
+    "NATIVE_VERIFICATION_SCHEMA_VERSION",
+    "NATIVE_VERIFICATION_SURFACE",
+    "NativeManifestError",
     "PhysicalProbeError",
     "CoverageMappingError",
     "EvalEffectError",
@@ -67,9 +83,12 @@ __all__ = [
     "validate_effect_contract",
     "validate_eval_effects",
     "validate_manifest",
+    "validate_native_manifest",
     "verify_adapter_semantics",
+    "verify_native_adapter",
     "write_manifest",
     "write_layout_observation",
+    "write_native_verification",
     "write_eval_effects",
 ]
 
