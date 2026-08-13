@@ -134,9 +134,16 @@ def _parser() -> argparse.ArgumentParser:
     effects.add_argument(
         "--ir",
         action="append",
-        required=True,
+        default=[],
         metavar="NAME=PATH",
-        help="named LLVM IR input; repeat for every Contract input",
+        help="named LLVM IR input; repeat for each LLVM Contract input",
+    )
+    effects.add_argument(
+        "--native-manifest",
+        action="append",
+        default=[],
+        metavar="NAME=PATH",
+        help="named native manifest; repeat for each native eval Contract input",
     )
     effects.add_argument(
         "--producer",
@@ -245,14 +252,14 @@ def _probe_layout(arguments: argparse.Namespace) -> int:
     return 0
 
 
-def _named_paths(values: Sequence[str]) -> dict[str, Path]:
+def _named_paths(values: Sequence[str], description: str) -> dict[str, Path]:
     result: dict[str, Path] = {}
     for value in values:
         name, separator, raw_path = value.partition("=")
         if not separator or not name or not raw_path:
-            raise SidecarError(f"LLVM IR input must use NAME=PATH: {value!r}")
+            raise SidecarError(f"{description} input must use NAME=PATH: {value!r}")
         if name in result:
-            raise SidecarError(f"duplicate LLVM IR input name: {name}")
+            raise SidecarError(f"duplicate {description} input name: {name}")
         result[name] = Path(raw_path)
     return result
 
@@ -265,7 +272,8 @@ def _classify_effects(arguments: argparse.Namespace) -> int:
         else None
     )
     observation = classify_eval_effects(
-        ir_inputs=_named_paths(arguments.ir),
+        ir_inputs=_named_paths(arguments.ir, "LLVM IR"),
+        native_inputs=_named_paths(arguments.native_manifest, "native manifest"),
         contract=contract,
         producer=arguments.producer,
         oracle=oracle,

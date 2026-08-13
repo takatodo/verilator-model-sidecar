@@ -17,6 +17,7 @@ from verilator_model_sidecar.effects import (  # noqa: E402
     validate_eval_effects,
 )
 from verilator_model_sidecar.cli import main as cli_main  # noqa: E402
+from tests.test_native_manifest import _native_eval_manifest  # noqa: E402
 from verilator_model_sidecar.semantic import validate_manifest  # noqa: E402
 
 
@@ -284,6 +285,131 @@ class EvalEffectsTest(unittest.TestCase):
             "eval_effects": observation,
         }
         validate_manifest(manifest)
+
+    def test_replaces_host_llvm_with_native_eval_metadata(self) -> None:
+        contract = {
+            "schema_version": 2,
+            "surface": "verilator_eval_effect_contract",
+            "target": "synthetic-hybrid",
+            "policy": {
+                "name": "hybrid_test_policy",
+                "classification_precedence": [
+                    "host_dependent",
+                    "unknown",
+                    "proven_device_clean",
+                ],
+                "permitted_external_symbols": ["llvm.memset.p0.i64"],
+                "permitted_external_prefixes": [],
+            },
+            "regions": {
+                "gpu": {
+                    "input": "gpu_ir",
+                    "input_kind": "llvm_ir",
+                    "artifact_role": "device_lowered_entry_slice",
+                    "entry": "clean_root",
+                    "expected_classification": "proven_device_clean",
+                },
+                "host": {
+                    "input": "host_native",
+                    "input_kind": "verilator_native_eval",
+                    "artifact_role": "verilator_final_ast_eval_manifest",
+                    "entry": "main_eval",
+                    "expected_classification": "host_dependent",
+                },
+            },
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ir = root / "gpu.ll"
+            native = root / "native.json"
+            contract_path = root / "contract.json"
+            output = root / "effects.json"
+            ir.write_text(IR, encoding="utf-8")
+            native.write_text(
+                json.dumps(_native_eval_manifest()),
+                encoding="utf-8",
+            )
+            contract_path.write_text(json.dumps(contract), encoding="utf-8")
+            observation = classify_eval_effects(
+                ir_inputs={"gpu_ir": ir},
+                native_inputs={"host_native": native},
+                contract=contract,
+                producer="Verilator test",
+            )
+            self.assertEqual(
+                cli_main(
+                    [
+                        "classify-effects",
+                        "--contract",
+                        str(contract_path),
+                        "--ir",
+                        f"gpu_ir={ir}",
+                        "--native-manifest",
+                        f"host_native={native}",
+                        "--producer",
+                        "Verilator test",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+            cli_observation = json.loads(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(cli_observation, observation)
+        self.assertEqual(observation["schema_version"], 2)
+        self.assertEqual(observation["status"], "resolved")
+        regions = {region["name"]: region for region in observation["regions"]}
+        self.assertEqual(regions["gpu"]["analysis_authority"], "llvm_ir_instruction_scan")
+        self.assertEqual(regions["gpu"]["classification"], "proven_device_clean")
+        self.assertEqual(regions["host"]["analysis_authority"], "verilator_final_ast")
+        self.assertEqual(regions["host"]["entry_selector"], "main_eval")
+        self.assertEqual(regions["host"]["classification"], "host_dependent")
+        self.assertEqual(regions["host"]["schedule_semantics"], "not_provided")
+        self.assertEqual(
+            {artifact["kind"] for artifact in observation["input_artifacts"]},
+            {"llvm_ir", "verilator_native_eval"},
+        )
+        validate_eval_effects(observation)
+
+    def test_native_eval_input_fails_closed(self) -> None:
+        contract = {
+            "schema_version": 2,
+            "surface": "verilator_eval_effect_contract",
+            "target": "synthetic-native",
+            "policy": {
+                "name": "native_test_policy",
+                "classification_precedence": [
+                    "host_dependent",
+                    "unknown",
+                    "proven_device_clean",
+                ],
+                "permitted_external_symbols": [],
+                "permitted_external_prefixes": [],
+            },
+            "regions": {
+                "host": {
+                    "input": "host_native",
+                    "input_kind": "verilator_native_eval",
+                    "artifact_role": "verilator_final_ast_eval_manifest",
+                    "entry": "main_eval",
+                    "expected_classification": "host_dependent",
+                }
+            },
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            native = root / "native.json"
+            tampered = _native_eval_manifest()
+            tampered["eval_regions"]["functions"][1]["classification"] = "unknown"
+            native.write_text(json.dumps(tampered), encoding="utf-8")
+            with self.assertRaisesRegex(EvalEffectError, "fixed-point"):
+                classify_eval_effects(
+                    ir_inputs={},
+                    native_inputs={"host_native": native},
+                    contract=contract,
+                    producer="Verilator test",
+                )
 
 
 if __name__ == "__main__":

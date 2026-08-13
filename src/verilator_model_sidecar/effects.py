@@ -10,11 +10,17 @@ from pathlib import Path
 import re
 from typing import Any, Mapping, Sequence
 
+from .native import NativeManifestError
+from .native_eval import extract_native_eval_closure
+
 
 EFFECT_CONTRACT_SURFACE = "verilator_eval_effect_contract"
 EFFECT_ORACLE_SURFACE = "verilator_eval_effect_oracle"
 EFFECT_OBSERVATION_SURFACE = "verilator_eval_effect_observation"
-EFFECT_SCHEMA_VERSION = 1
+EFFECT_SCHEMA_VERSION = 2
+
+_SUPPORTED_SCHEMA_VERSIONS = {1, EFFECT_SCHEMA_VERSION}
+_INPUT_KINDS = {"llvm_ir", "verilator_native_eval"}
 
 _CLASSIFICATIONS = {
     "proven_device_clean",
@@ -293,7 +299,8 @@ def _validate_string_array(value: Any, description: str) -> list[str]:
 
 
 def validate_effect_contract(contract: Mapping[str, Any]) -> None:
-    if contract.get("schema_version") != EFFECT_SCHEMA_VERSION:
+    schema_version = contract.get("schema_version")
+    if schema_version not in _SUPPORTED_SCHEMA_VERSIONS:
         raise EvalEffectError("unsupported eval-effect contract schema_version")
     if contract.get("surface") != EFFECT_CONTRACT_SURFACE:
         raise EvalEffectError("unexpected eval-effect contract surface")
@@ -327,6 +334,16 @@ def validate_effect_contract(contract: Mapping[str, Any]) -> None:
             raise EvalEffectError(
                 f"eval-effect region {name!r} has unsupported expected classification"
             )
+        input_kind = region.get("input_kind", "llvm_ir")
+        if schema_version == 1 and "input_kind" in region:
+            raise EvalEffectError("schema version 1 eval regions are LLVM IR only")
+        if schema_version == EFFECT_SCHEMA_VERSION:
+            if "input_kind" not in region or input_kind not in _INPUT_KINDS:
+                raise EvalEffectError(
+                    f"eval-effect region {name!r} has unsupported input_kind"
+                )
+        if input_kind == "verilator_native_eval" and region.get("entry") != "main_eval":
+            raise EvalEffectError("native eval regions must select the main_eval entry")
 
 
 def _external_kind(
@@ -421,11 +438,14 @@ def _direct_call_rows(
 
 def _direct_classification(row: Mapping[str, Any]) -> str:
     calls = row["calls"]
-    if any(call["kind"] == "host_dependency" for call in calls):
+    if row.get("direct_host_dependencies") or any(
+        call["kind"] == "host_dependency" for call in calls
+    ):
         return "host_dependent"
     effects = row["effects"]
     if (
-        any(call["kind"] == "unknown_external" for call in calls)
+        row.get("direct_unknown_effects")
+        or any(call["kind"] == "unknown_external" for call in calls)
         or effects["indirect_call_site_count"]
         or effects["inline_asm_call_site_count"]
         or effects["exception_control_instruction_count"]
@@ -465,6 +485,15 @@ def _classify_function_rows(rows: list[dict[str, Any]]) -> dict[str, str]:
 def _classification_reason(
     row: Mapping[str, Any], classes: Mapping[str, str]
 ) -> dict[str, Any]:
+    direct_host_dependencies = row.get("direct_host_dependencies", [])
+    if direct_host_dependencies:
+        dependency = direct_host_dependencies[0]
+        return {
+            "kind": "direct_host_dependency",
+            "category": dependency["category"],
+            "site_count": dependency["site_count"],
+            "authority": "verilator_final_ast",
+        }
     host_calls = [call for call in row["calls"] if call["kind"] == "host_dependency"]
     if host_calls:
         call = host_calls[0]
@@ -481,13 +510,24 @@ def _classification_reason(
     )
     if host_callees:
         return {"kind": "transitive_host_dependency", "callee": host_callees[0]}
-    unknown_calls = [call for call in row["calls"] if call["kind"] == "unknown_external"]
+    unknown_calls = [
+        call for call in row["calls"] if call["kind"] == "unknown_external"
+    ]
     if unknown_calls:
         call = unknown_calls[0]
         return {
             "kind": "unknown_external",
             "symbol": call["resolved_symbol"],
             "category": call["category"],
+        }
+    direct_unknown_effects = row.get("direct_unknown_effects", [])
+    if direct_unknown_effects:
+        effect = direct_unknown_effects[0]
+        return {
+            "kind": "direct_unknown_effect",
+            "effect": effect["kind"],
+            "site_count": effect["site_count"],
+            "authority": "verilator_final_ast",
         }
     effects = row["effects"]
     for key, reason_kind in (
@@ -557,9 +597,76 @@ def _build_function_rows(
     return rows
 
 
+def _build_native_function_rows(
+    projection: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for function in projection["functions"]:
+        accesses = [dict(access) for access in function["direct_state_accesses"]]
+        host_dependencies = [
+            dict(dependency)
+            for dependency in function["direct_effects"]["host_dependencies"]
+        ]
+        unknown_effects = [
+            dict(effect)
+            for effect in function["direct_effects"]["unknown_effects"]
+        ]
+        rows.append(
+            {
+                "name": function["function_id"],
+                "generated_binding": dict(function["generated_binding"]),
+                "calls": [
+                    {
+                        "symbol": call["callee_function_id"],
+                        "resolved_symbol": call["callee_function_id"],
+                        "kind": "defined",
+                        "site_count": call["site_count"],
+                    }
+                    for call in function["direct_calls"]
+                ],
+                "direct_state_accesses": accesses,
+                "direct_host_dependencies": host_dependencies,
+                "direct_unknown_effects": unknown_effects,
+                "effects": {
+                    "load_instruction_count": 0,
+                    "store_instruction_count": 0,
+                    "atomic_instruction_count": 0,
+                    "alloca_instruction_count": 0,
+                    "pointer_conversion_instruction_count": 0,
+                    "memory_intrinsic_call_site_count": 0,
+                    "indirect_call_site_count": 0,
+                    "inline_asm_call_site_count": 0,
+                    "exception_control_instruction_count": 0,
+                    "state_access_binding_count": len(accesses),
+                    "state_read_site_count": sum(
+                        access["read_site_count"] for access in accesses
+                    ),
+                    "state_write_site_count": sum(
+                        access["write_site_count"] for access in accesses
+                    ),
+                    "coverage_update_site_count": function["direct_effects"][
+                        "coverage_update_site_count"
+                    ],
+                    "host_dependency_effect_site_count": sum(
+                        dependency["site_count"] for dependency in host_dependencies
+                    ),
+                    "unknown_effect_site_count": sum(
+                        effect["site_count"] for effect in unknown_effects
+                    ),
+                },
+            }
+        )
+    classes = _classify_function_rows(rows)
+    for row in rows:
+        row["classification"] = classes[row["name"]]
+        row["reason"] = _classification_reason(row, classes)
+    return rows
+
+
 def _region_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     classifications = Counter(row["classification"] for row in rows)
     call_rows = [call for row in rows for call in row["calls"]]
+    effect_names = sorted({name for row in rows for name in row["effects"]})
     return {
         "reachable_function_count": len(rows),
         "proven_device_clean_function_count": classifications[
@@ -588,18 +695,8 @@ def _region_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
             if call["kind"] == "unknown_external"
         ),
         **{
-            key: sum(row["effects"][key] for row in rows)
-            for key in (
-                "load_instruction_count",
-                "store_instruction_count",
-                "atomic_instruction_count",
-                "alloca_instruction_count",
-                "pointer_conversion_instruction_count",
-                "memory_intrinsic_call_site_count",
-                "indirect_call_site_count",
-                "inline_asm_call_site_count",
-                "exception_control_instruction_count",
-            )
+            key: sum(row["effects"].get(key, 0) for row in rows)
+            for key in effect_names
         },
     }
 
@@ -624,7 +721,26 @@ def _host_dependencies(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]
             group["callers"].append(row["name"])
     for group in grouped.values():
         group["callers"].sort()
-    return [grouped[key] for key in sorted(grouped)]
+    result = [grouped[key] for key in sorted(grouped)]
+    native_grouped: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        for dependency in row.get("direct_host_dependencies", []):
+            category = dependency["category"]
+            group = native_grouped.setdefault(
+                category,
+                {
+                    "category": category,
+                    "effect_site_count": 0,
+                    "functions": [],
+                    "authority": "verilator_final_ast",
+                },
+            )
+            group["effect_site_count"] += dependency["site_count"]
+            group["functions"].append(row["name"])
+    for category in sorted(native_grouped):
+        native_grouped[category]["functions"].sort()
+        result.append(native_grouped[category])
+    return result
 
 
 def _unknown_effects(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -651,6 +767,16 @@ def _unknown_effects(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
                 result.append(
                     {"kind": kind, "function": row["name"], "site_count": count}
                 )
+        for effect in row.get("direct_unknown_effects", []):
+            result.append(
+                {
+                    "kind": "native_unknown_effect",
+                    "effect": effect["kind"],
+                    "function": row["name"],
+                    "site_count": effect["site_count"],
+                    "authority": "verilator_final_ast",
+                }
+            )
     return sorted(
         result,
         key=lambda item: (
@@ -662,7 +788,7 @@ def _unknown_effects(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _region_core(region: Mapping[str, Any]) -> dict[str, Any]:
-    return {
+    core = {
         key: region[key]
         for key in (
             "name",
@@ -680,6 +806,16 @@ def _region_core(region: Mapping[str, Any]) -> dict[str, Any]:
             "functions",
         )
     }
+    for key in (
+        "input_kind",
+        "analysis_authority",
+        "entry_selector",
+        "schedule_semantics",
+        "convergence_semantics",
+    ):
+        if key in region:
+            core[key] = region[key]
+    return core
 
 
 def _observation_core(observation: Mapping[str, Any]) -> dict[str, Any]:
@@ -738,14 +874,59 @@ def _build_region(
         "unknown_effects": _unknown_effects(rows),
         "functions": rows,
     }
+    if "input_kind" in specification:
+        region["input_kind"] = specification["input_kind"]
+        region["analysis_authority"] = "llvm_ir_instruction_scan"
     region["closure_fingerprint"] = _sha256_bytes(
         _canonical_bytes(_region_core(region))
     )
     return region
 
 
-def _validate_oracle(oracle: Mapping[str, Any]) -> None:
-    if oracle.get("schema_version") != EFFECT_SCHEMA_VERSION:
+def _build_native_region(
+    *,
+    name: str,
+    specification: Mapping[str, Any],
+    projection: Mapping[str, Any],
+    artifact: Mapping[str, Any],
+) -> dict[str, Any]:
+    rows = _build_native_function_rows(projection)
+    entry = projection["entry_function_id"]
+    by_name = {row["name"]: row for row in rows}
+    classification = by_name[entry]["classification"]
+    if classification != projection["classification"]:
+        raise EvalEffectError(
+            "native eval projection classification changed during normalization"
+        )
+    expected = specification["expected_classification"]
+    region: dict[str, Any] = {
+        "name": name,
+        "input": specification["input"],
+        "input_kind": "verilator_native_eval",
+        "artifact_role": specification["artifact_role"],
+        "artifact_sha256": artifact["sha256"],
+        "artifact_bytes": artifact["bytes"],
+        "analysis_authority": projection["authority"],
+        "entry_selector": specification["entry"],
+        "entry": entry,
+        "classification": classification,
+        "expected_classification": expected,
+        "expectation_met": classification == expected,
+        "metrics": _region_metrics(rows),
+        "host_dependencies": _host_dependencies(rows),
+        "unknown_effects": _unknown_effects(rows),
+        "functions": rows,
+        "schedule_semantics": projection["schedule_semantics"],
+        "convergence_semantics": projection["convergence_semantics"],
+    }
+    region["closure_fingerprint"] = _sha256_bytes(
+        _canonical_bytes(_region_core(region))
+    )
+    return region
+
+
+def _validate_oracle(oracle: Mapping[str, Any], schema_version: int) -> None:
+    if oracle.get("schema_version") != schema_version:
         raise EvalEffectError("unsupported eval-effect oracle schema_version")
     if oracle.get("surface") != EFFECT_ORACLE_SURFACE:
         raise EvalEffectError("unexpected eval-effect oracle surface")
@@ -760,7 +941,7 @@ def _validate_oracle(oracle: Mapping[str, Any]) -> None:
 def _oracle_issues(
     observation: Mapping[str, Any], oracle: Mapping[str, Any]
 ) -> list[str]:
-    _validate_oracle(oracle)
+    _validate_oracle(oracle, observation["schema_version"])
     issues: list[str] = []
     for key in ("target", "contract_sha256", "observation_fingerprint"):
         if oracle.get(key) != observation.get(key):
@@ -796,6 +977,7 @@ def _oracle_issues(
 def classify_eval_effects(
     *,
     ir_inputs: Mapping[str, Path],
+    native_inputs: Mapping[str, Path] | None = None,
     contract: Mapping[str, Any],
     producer: str,
     oracle: Mapping[str, Any] | None = None,
@@ -805,19 +987,45 @@ def classify_eval_effects(
     validate_effect_contract(contract)
     if not isinstance(producer, str) or not producer:
         raise EvalEffectError("producer must be a non-empty string")
-    required_inputs = sorted(
-        {region["input"] for region in contract["regions"].values()}
+    native_inputs = native_inputs or {}
+    schema_version = contract["schema_version"]
+    kinds_by_input: dict[str, set[str]] = {}
+    for region in contract["regions"].values():
+        kinds_by_input.setdefault(region["input"], set()).add(
+            region.get("input_kind", "llvm_ir")
+        )
+    if any(len(kinds) != 1 for kinds in kinds_by_input.values()):
+        raise EvalEffectError("one eval-effect input cannot have multiple input kinds")
+    input_kinds = {name: next(iter(kinds)) for name, kinds in kinds_by_input.items()}
+    required_ir = sorted(
+        name for name, input_kind in input_kinds.items() if input_kind == "llvm_ir"
     )
-    missing = [name for name in required_inputs if name not in ir_inputs]
-    extra = sorted(set(ir_inputs) - set(required_inputs))
-    if missing:
-        raise EvalEffectError(f"missing LLVM IR inputs: {', '.join(missing)}")
-    if extra:
-        raise EvalEffectError(f"undeclared LLVM IR inputs: {', '.join(extra)}")
+    required_native = sorted(
+        name
+        for name, input_kind in input_kinds.items()
+        if input_kind == "verilator_native_eval"
+    )
+    missing_ir = [name for name in required_ir if name not in ir_inputs]
+    extra_ir = sorted(set(ir_inputs) - set(required_ir))
+    missing_native = [name for name in required_native if name not in native_inputs]
+    extra_native = sorted(set(native_inputs) - set(required_native))
+    if missing_ir:
+        raise EvalEffectError(f"missing LLVM IR inputs: {', '.join(missing_ir)}")
+    if extra_ir:
+        raise EvalEffectError(f"undeclared LLVM IR inputs: {', '.join(extra_ir)}")
+    if missing_native:
+        raise EvalEffectError(
+            f"missing Verilator native eval inputs: {', '.join(missing_native)}"
+        )
+    if extra_native:
+        raise EvalEffectError(
+            f"undeclared Verilator native eval inputs: {', '.join(extra_native)}"
+        )
 
     modules: dict[str, _IRModule] = {}
+    native_projections: dict[str, dict[str, Any]] = {}
     artifacts: dict[str, dict[str, Any]] = {}
-    for name in required_inputs:
+    for name in required_ir:
         path = Path(ir_inputs[name])
         modules[name] = _parse_ir(path)
         artifacts[name] = {
@@ -825,24 +1033,57 @@ def classify_eval_effects(
             "bytes": path.stat().st_size,
             "sha256": _sha256_file(path),
         }
+        if schema_version == EFFECT_SCHEMA_VERSION:
+            artifacts[name]["kind"] = "llvm_ir"
+    for name in required_native:
+        path = Path(native_inputs[name])
+        if not path.is_file():
+            raise EvalEffectError(f"native eval input does not exist: {path}")
+        native_manifest = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(native_manifest, Mapping):
+            raise EvalEffectError("native eval manifest root must be an object")
+        if native_manifest.get("producer") != producer:
+            raise EvalEffectError(
+                "native eval manifest producer does not match producer"
+            )
+        try:
+            native_projections[name] = extract_native_eval_closure(native_manifest)
+        except NativeManifestError as error:
+            raise EvalEffectError(f"invalid native eval manifest: {error}") from error
+        artifacts[name] = {
+            "name": name,
+            "kind": "verilator_native_eval",
+            "bytes": path.stat().st_size,
+            "sha256": _sha256_file(path),
+        }
 
     policy = contract["policy"]
     permitted_symbols = set(policy.get("permitted_external_symbols", []))
     permitted_prefixes = list(policy.get("permitted_external_prefixes", []))
-    regions = [
-        _build_region(
-            name=name,
-            specification=contract["regions"][name],
-            module=modules[contract["regions"][name]["input"]],
-            artifact=artifacts[contract["regions"][name]["input"]],
-            permitted_symbols=permitted_symbols,
-            permitted_prefixes=permitted_prefixes,
-        )
-        for name in sorted(contract["regions"])
-    ]
+    regions = []
+    for name in sorted(contract["regions"]):
+        specification = contract["regions"][name]
+        input_name = specification["input"]
+        if specification.get("input_kind", "llvm_ir") == "verilator_native_eval":
+            region = _build_native_region(
+                name=name,
+                specification=specification,
+                projection=native_projections[input_name],
+                artifact=artifacts[input_name],
+            )
+        else:
+            region = _build_region(
+                name=name,
+                specification=specification,
+                module=modules[input_name],
+                artifact=artifacts[input_name],
+                permitted_symbols=permitted_symbols,
+                permitted_prefixes=permitted_prefixes,
+            )
+        regions.append(region)
     counts = Counter(region["classification"] for region in regions)
     observation: dict[str, Any] = {
-        "schema_version": EFFECT_SCHEMA_VERSION,
+        "schema_version": schema_version,
         "surface": EFFECT_OBSERVATION_SURFACE,
         "producer": producer,
         "target": contract["target"],
@@ -853,7 +1094,7 @@ def classify_eval_effects(
             "permitted_external_symbols": sorted(permitted_symbols),
             "permitted_external_prefixes": sorted(permitted_prefixes),
         },
-        "input_artifacts": [artifacts[name] for name in required_inputs],
+        "input_artifacts": [artifacts[name] for name in sorted(artifacts)],
         "region_count": len(regions),
         "classification_counts": {
             classification: counts[classification]
@@ -891,7 +1132,8 @@ def _recompute_region(region: Mapping[str, Any]) -> tuple[str, dict[str, Any]]:
 
 
 def validate_eval_effects(observation: Mapping[str, Any]) -> None:
-    if observation.get("schema_version") != EFFECT_SCHEMA_VERSION:
+    schema_version = observation.get("schema_version")
+    if schema_version not in _SUPPORTED_SCHEMA_VERSIONS:
         raise EvalEffectError("unsupported eval-effect observation schema_version")
     if observation.get("surface") != EFFECT_OBSERVATION_SURFACE:
         raise EvalEffectError("unexpected eval-effect observation surface")
@@ -925,6 +1167,13 @@ def validate_eval_effects(observation: Mapping[str, Any]) -> None:
             or not isinstance(artifact.get("sha256"), str)
         ):
             raise EvalEffectError("eval-effect input artifact identity is invalid")
+        if (
+            schema_version == EFFECT_SCHEMA_VERSION
+            and artifact.get("kind") not in _INPUT_KINDS
+        ):
+            raise EvalEffectError("eval-effect input artifact kind is invalid")
+        if schema_version == 1 and "kind" in artifact:
+            raise EvalEffectError("schema version 1 input artifacts cannot declare kind")
         artifact_names.append(artifact["name"])
     if artifact_names != sorted(set(artifact_names)):
         raise EvalEffectError("eval-effect input artifacts must be uniquely sorted")
@@ -938,10 +1187,42 @@ def validate_eval_effects(observation: Mapping[str, Any]) -> None:
     if len(region_names) != len(regions) or region_names != sorted(set(region_names)):
         raise EvalEffectError("eval-effect region names must be uniquely sorted strings")
     observed_counts: Counter[str] = Counter()
+    artifact_kinds = {
+        artifact["name"]: artifact.get("kind", "llvm_ir") for artifact in artifacts
+    }
     for region in regions:
         if not isinstance(region, Mapping):
             raise EvalEffectError("eval-effect region must be an object")
         name = region["name"]
+        input_name = region.get("input")
+        if input_name not in artifact_kinds:
+            raise EvalEffectError(f"region {name!r} input artifact is absent")
+        input_kind = region.get("input_kind", "llvm_ir")
+        if schema_version == EFFECT_SCHEMA_VERSION:
+            if input_kind != artifact_kinds[input_name]:
+                raise EvalEffectError(f"region {name!r} input kind is inconsistent")
+            if input_kind == "verilator_native_eval":
+                if region.get("analysis_authority") != "verilator_final_ast":
+                    raise EvalEffectError(
+                        f"region {name!r} native analysis authority is invalid"
+                    )
+                if region.get("entry_selector") != "main_eval":
+                    raise EvalEffectError(
+                        f"region {name!r} native entry selector is invalid"
+                    )
+                if (
+                    region.get("schedule_semantics") != "not_provided"
+                    or region.get("convergence_semantics") != "not_provided"
+                ):
+                    raise EvalEffectError(
+                        f"region {name!r} overclaims native schedule or convergence"
+                    )
+            elif region.get("analysis_authority") != "llvm_ir_instruction_scan":
+                raise EvalEffectError(
+                    f"region {name!r} LLVM analysis authority is invalid"
+                )
+        elif "input_kind" in region or "analysis_authority" in region:
+            raise EvalEffectError("schema version 1 regions cannot declare input authority")
         if region.get("classification") not in _CLASSIFICATIONS:
             raise EvalEffectError(f"region {name!r} has invalid classification")
         if region.get("expected_classification") not in _CLASSIFICATIONS:
@@ -967,6 +1248,60 @@ def validate_eval_effects(observation: Mapping[str, Any]) -> None:
             effects = function.get("effects")
             if not isinstance(calls, list) or not isinstance(effects, Mapping):
                 raise EvalEffectError(f"region {name!r} function facts are invalid")
+            direct_host_dependencies = function.get("direct_host_dependencies", [])
+            direct_unknown_effects = function.get("direct_unknown_effects", [])
+            for rows, identity, description in (
+                (
+                    direct_host_dependencies,
+                    "category",
+                    "direct host dependencies",
+                ),
+                (direct_unknown_effects, "kind", "direct unknown effects"),
+            ):
+                if not isinstance(rows, list) or any(
+                    not isinstance(row, Mapping) for row in rows
+                ):
+                    raise EvalEffectError(
+                        f"region {name!r} {description} must be object arrays"
+                    )
+                identities = [row.get(identity) for row in rows]
+                if (
+                    any(not isinstance(value, str) or not value for value in identities)
+                    or identities != sorted(set(identities))
+                    or any(
+                        type(row.get("site_count")) is not int
+                        or row["site_count"] <= 0
+                        for row in rows
+                    )
+                ):
+                    raise EvalEffectError(
+                        f"region {name!r} {description} are invalid"
+                    )
+            if input_kind == "verilator_native_eval":
+                accesses = function.get("direct_state_accesses")
+                if not isinstance(accesses, list) or any(
+                    not isinstance(access, Mapping) for access in accesses
+                ):
+                    raise EvalEffectError(
+                        f"region {name!r} native state accesses are invalid"
+                    )
+                access_ids = [access.get("field_id") for access in accesses]
+                if access_ids != sorted(set(access_ids)):
+                    raise EvalEffectError(
+                        f"region {name!r} native state accesses are not unique"
+                    )
+                for access in accesses:
+                    if (
+                        not isinstance(access.get("field_id"), str)
+                        or type(access.get("read_site_count")) is not int
+                        or access["read_site_count"] < 0
+                        or type(access.get("write_site_count")) is not int
+                        or access["write_site_count"] < 0
+                        or access["read_site_count"] + access["write_site_count"] == 0
+                    ):
+                        raise EvalEffectError(
+                            f"region {name!r} native state access is invalid"
+                        )
             for call in calls:
                 if not isinstance(call, Mapping) or call.get("kind") not in {
                     "defined",
