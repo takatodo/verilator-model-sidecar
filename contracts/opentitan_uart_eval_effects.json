@@ -5,7 +5,7 @@
       "unknown",
       "proven_device_clean"
     ],
-    "name": "llvm_device_effects_v1",
+    "name": "hybrid_native_eval_effects_v2",
     "permitted_external_prefixes": [
       "llvm."
     ]
@@ -15,16 +15,18 @@
       "artifact_role": "device_lowered_entry_slice",
       "entry": "vl_eval_batch_gpu",
       "expected_classification": "proven_device_clean",
-      "input": "gpu_eval_slice_ir"
+      "input": "gpu_eval_slice_ir",
+      "input_kind": "llvm_ir"
     },
     "verilator_eval": {
-      "artifact_role": "verilator_generated_cpp_llvm",
-      "entry": "_Z21Vsim___024root___evalP14Vsim___024root",
+      "artifact_role": "verilator_final_ast_eval_manifest",
+      "entry": "main_eval",
       "expected_classification": "host_dependent",
-      "input": "verilator_host_ir"
+      "input": "verilator_native_manifest",
+      "input_kind": "verilator_native_eval"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
   "surface": "verilator_eval_effect_contract",
   "target": "OpenTitan:default:hello:uart-profile"
 }
