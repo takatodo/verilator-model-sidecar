@@ -45,9 +45,22 @@ verilator-model-sidecar verify-native \
   --output /tmp/opentitan-uart-native-verification.json
 ```
 
-This native path currently verifies names, hierarchy, generated member bindings,
-and widths only. Byte offsets, checkpoint packing, coverage aliases, and eval
-effects remain separate fail-closed capabilities.
+The same native manifest can authorize a compiled ABI measurement without
+parsing generated headers for member types:
+
+```bash
+verilator-model-sidecar probe-layout \
+  --obj-dir /path/to/obj_dir \
+  --adapter contracts/opentitan_uart_semantic_signals.json \
+  --native-manifest /path/to/model-manifest.json \
+  --producer "$(verilator --version)" \
+  --output /tmp/opentitan-uart-native-layout.json
+```
+
+This native path verifies names, hierarchy, generated member bindings, widths,
+and compiler-measured offsets for the exact generated model. The offsets are
+not a stable cross-version ABI. Pointer-free checkpoint packing, native coverage
+aliases, and native eval effects remain separate fail-closed capabilities.
 
 Physical bindings fail closed as `not_analyzed` unless an explicit measured
 layout is supplied. Coverage mapping likewise fails closed unless an explicit

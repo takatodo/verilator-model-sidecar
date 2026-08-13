@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +21,7 @@ from verilator_model_sidecar.semantic import resolve_physical_bindings  # noqa: 
 
 
 PRODUCER = "Verilator 5.050 2026-07-01 rev v5.050"
+NATIVE_PRODUCER = "Verilator native test"
 
 
 def _adapter() -> dict:
@@ -55,6 +57,77 @@ def _coverage_contract() -> dict:
                 "kind": "toggle_direction_counters",
                 "word_bits": 32,
             }
+        },
+    }
+
+
+def _native_manifest() -> dict:
+    return {
+        "schema_version": 1,
+        "surface": "verilator_model_manifest_experimental",
+        "producer": NATIVE_PRODUCER,
+        "model": {"top": "toy", "prefix": "Vtoy"},
+        "field_count": 2,
+        "fields": [
+            {
+                "field_id": "rtl:toy.clk",
+                "origin": "rtl",
+                "semantic_path": "toy.clk",
+                "rtl_name": "clk",
+                "width_bits": 1,
+                "direction": "INPUT",
+                "source": {"file": "toy.sv", "first_line": 1},
+                "generated_binding": {
+                    "container": "Vtoy___024root",
+                    "member": "clk",
+                    "storage": "instance_member",
+                },
+            },
+            {
+                "field_id": "rtl:status.done",
+                "origin": "rtl",
+                "semantic_path": "status.done",
+                "rtl_name": "done",
+                "width_bits": 1,
+                "direction": "NONE",
+                "source": {"file": "toy.sv", "first_line": 2},
+                "generated_binding": {
+                    "container": "Vtoy_status",
+                    "member": "done",
+                    "storage": "instance_member",
+                },
+            },
+        ],
+        "instance_count": 2,
+        "instances": [
+            {
+                "instance_id": "rtl_instance:toy",
+                "semantic_path": "toy",
+                "parent_instance_id": "",
+                "is_top": True,
+                "module_binding": {"container": "Vtoy___024root"},
+                "generated_binding": {
+                    "container": "Vtoy__Syms",
+                    "member": "TOP",
+                    "storage": "instance_member",
+                },
+            },
+            {
+                "instance_id": "rtl_instance:toy.status",
+                "semantic_path": "toy.status",
+                "parent_instance_id": "rtl_instance:toy",
+                "is_top": False,
+                "module_binding": {"container": "Vtoy_status"},
+                "generated_binding": {
+                    "container": "Vtoy__Syms",
+                    "member": "STATUS",
+                    "storage": "instance_member",
+                },
+            },
+        ],
+        "limitations": {
+            "generated_storage_instances": "provided",
+            "semantic_instance_topology": "not_provided",
         },
     }
 
@@ -111,6 +184,33 @@ def _adapter_verification() -> dict:
 
 
 class PhysicalLayoutTest(unittest.TestCase):
+    def test_native_manifest_measures_layout_without_parsing_headers(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            obj_dir, include_dir = _write_fake_model(Path(temporary))
+            with mock.patch(
+                "verilator_model_sidecar.physical._member_types",
+                side_effect=AssertionError("legacy header parser used"),
+            ):
+                observation = probe_physical_layout(
+                    obj_dir=obj_dir,
+                    adapter=_adapter(),
+                    producer=NATIVE_PRODUCER,
+                    native_manifest=_native_manifest(),
+                    verilator_include=include_dir,
+                )
+
+        validate_layout_observation(observation)
+        self.assertEqual(
+            observation["binding_authority"],
+            "verilator_native_model_manifest",
+        )
+        self.assertEqual(
+            observation["state_image"], {"bytes": 24, "root_offset_bytes": 8}
+        )
+        bindings = {row["name"]: row for row in observation["bindings"]}
+        self.assertEqual(bindings["clock"]["state_offset"], 8)
+        self.assertEqual(bindings["done"]["state_offset"], 20)
+
     def test_measures_known_cpp_layout_without_local_paths(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             obj_dir, include_dir = _write_fake_model(Path(temporary))
@@ -129,6 +229,9 @@ class PhysicalLayoutTest(unittest.TestCase):
 
         self.assertEqual(first, second)
         validate_layout_observation(first)
+        self.assertEqual(
+            first["binding_authority"], "generated_cpp_header_inference"
+        )
         self.assertEqual(first["state_image"], {"bytes": 24, "root_offset_bytes": 8})
         bindings = {row["name"]: row for row in first["bindings"]}
         self.assertEqual(bindings["clock"]["state_offset"], 8)

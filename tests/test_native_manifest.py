@@ -124,11 +124,24 @@ class NativeManifestTest(unittest.TestCase):
         signals = {row["name"]: row for row in report["signals"]}
         self.assertEqual(signals["clock"]["binding_kind"], "direct_field")
         self.assertEqual(signals["clock"]["canonical_name"], "tiny.clk_i")
+        self.assertEqual(
+            signals["clock"]["native_entity"]["instance_id"],
+            "rtl_instance:tiny",
+        )
         self.assertEqual(signals["done"]["binding_kind"], "instance_field")
         self.assertEqual(signals["done"]["canonical_name"], "tiny.status.done")
         self.assertEqual(
             signals["done"]["native_entity"]["instance_id"],
             "rtl_instance:tiny.status",
+        )
+        self.assertEqual(
+            signals["done"]["native_entity"]["generated_storage"],
+            {
+                "state_container": "Vtiny__Syms",
+                "instance_member": "TOP__tiny__DOT__status",
+                "field_container": "Vtiny_status_if",
+                "field_member": "done",
+            },
         )
 
     def test_fails_closed_when_topology_or_width_is_wrong(self) -> None:

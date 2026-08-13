@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .coverage import CoverageMappingError, coverage_region_contracts
+from .native import verify_native_adapter
 
 
 LAYOUT_OBSERVATION_SURFACE = "verilator_cpp_layout_observation"
@@ -29,6 +30,15 @@ class _ProbeSpec:
     binding: str
     offset_expression: str
     size_expression: str
+
+
+@dataclass(frozen=True)
+class _NativeProbe:
+    prefix: str
+    syms_type: str
+    root_type: str
+    root_offset_expression: str
+    specs: tuple[_ProbeSpec, ...]
 
 
 def _sha256_bytes(value: bytes) -> str:
@@ -117,6 +127,101 @@ def _binding_spec(
     )
 
 
+def _native_probe(
+    manifest: Mapping[str, Any], adapter: Mapping[str, Any]
+) -> _NativeProbe:
+    report = verify_native_adapter(manifest, adapter)
+    if report.get("status") != "matched":
+        raise PhysicalProbeError(
+            "native manifest does not match every requested adapter signal"
+        )
+    model = manifest.get("model")
+    instances = manifest.get("instances")
+    if not isinstance(model, Mapping) or not isinstance(instances, list):
+        raise PhysicalProbeError("native manifest model storage is malformed")
+    prefix = model.get("prefix")
+    if not isinstance(prefix, str) or _IDENTIFIER.fullmatch(prefix) is None:
+        raise PhysicalProbeError("native manifest model prefix is invalid")
+    top_instances = [
+        row
+        for row in instances
+        if isinstance(row, Mapping) and row.get("is_top") is True
+    ]
+    if len(top_instances) != 1:
+        raise PhysicalProbeError("native manifest has no unique top storage instance")
+    top = top_instances[0]
+    top_binding = top.get("generated_binding")
+    top_module = top.get("module_binding")
+    if not isinstance(top_binding, Mapping) or not isinstance(top_module, Mapping):
+        raise PhysicalProbeError("native top storage binding is malformed")
+    syms_type = top_binding.get("container")
+    top_member = top_binding.get("member")
+    root_type = top_module.get("container")
+    for value, name in (
+        (syms_type, "state container"),
+        (top_member, "top instance member"),
+        (root_type, "root field container"),
+    ):
+        if not isinstance(value, str) or _IDENTIFIER.fullmatch(value) is None:
+            raise PhysicalProbeError(f"native {name} is not a C++ identifier")
+    specs: list[_ProbeSpec] = []
+    signals = report.get("signals")
+    if not isinstance(signals, list):
+        raise PhysicalProbeError("native adapter verification has no signals")
+    for row in signals:
+        if not isinstance(row, Mapping):
+            raise PhysicalProbeError("native adapter verification signal is malformed")
+        entity = row.get("native_entity")
+        if not isinstance(entity, Mapping):
+            raise PhysicalProbeError("native adapter signal has no native entity")
+        storage = entity.get("generated_storage")
+        if not isinstance(storage, Mapping):
+            raise PhysicalProbeError("native adapter signal has no generated storage")
+        identifiers: dict[str, str] = {}
+        for key in (
+            "state_container",
+            "instance_member",
+            "field_container",
+            "field_member",
+        ):
+            value = storage.get(key)
+            if not isinstance(value, str) or _IDENTIFIER.fullmatch(value) is None:
+                raise PhysicalProbeError(
+                    f"native adapter signal storage {key} is not a C++ identifier"
+                )
+            identifiers[key] = value
+        if identifiers["state_container"] != syms_type:
+            raise PhysicalProbeError(
+                "native adapter signal uses another state container"
+            )
+        name = row.get("name")
+        binding = row.get("binding")
+        if not isinstance(name, str) or not isinstance(binding, str):
+            raise PhysicalProbeError("native adapter signal name/binding is malformed")
+        specs.append(
+            _ProbeSpec(
+                name=name,
+                binding=binding,
+                offset_expression=(
+                    f"offsetof({syms_type}, {identifiers['instance_member']}) + "
+                    f"offsetof({identifiers['field_container']}, "
+                    f"{identifiers['field_member']})"
+                ),
+                size_expression=(
+                    f"sizeof((({identifiers['field_container']}*)nullptr)->"
+                    f"{identifiers['field_member']})"
+                ),
+            )
+        )
+    return _NativeProbe(
+        prefix=prefix,
+        syms_type=syms_type,
+        root_type=root_type,
+        root_offset_expression=f"offsetof({syms_type}, {top_member})",
+        specs=tuple(specs),
+    )
+
+
 def _verilator_include_dir(
     explicit: Path | None,
     *,
@@ -163,6 +268,7 @@ def probe_physical_layout(
     obj_dir: Path,
     adapter: Mapping[str, Any],
     producer: str,
+    native_manifest: Mapping[str, Any] | None = None,
     coverage_contract: Mapping[str, Any] | None = None,
     cxx: str = "c++",
     verilator_include: Path | None = None,
@@ -170,38 +276,64 @@ def probe_physical_layout(
 ) -> dict[str, Any]:
     """Compile and execute one explicit ``sizeof``/``offsetof`` ABI probe."""
 
-    if not producer.startswith(SUPPORTED_VERILATOR_PREFIX):
+    if native_manifest is None and not producer.startswith(SUPPORTED_VERILATOR_PREFIX):
         raise PhysicalProbeError(
             f"unsupported Verilator producer {producer!r}; expected 5.050"
         )
+    if native_manifest is not None:
+        if native_manifest.get("producer") != producer:
+            raise PhysicalProbeError(
+                "native manifest producer does not match the layout producer"
+            )
+        if coverage_contract is not None:
+            raise PhysicalProbeError(
+                "native manifest coverage storage is not provided"
+            )
     obj_dir = obj_dir.resolve()
     if not obj_dir.is_dir():
         raise PhysicalProbeError(f"Verilator object directory does not exist: {obj_dir}")
-    prefix = _model_prefix(adapter)
+    if native_manifest is None:
+        prefix = _model_prefix(adapter)
+        syms_type = f"{prefix}__Syms"
+        root_type = f"{prefix}___024root"
+        root_offset_expression = f"offsetof({syms_type}, TOP)"
+        binding_authority = "generated_cpp_header_inference"
+    else:
+        native_probe = _native_probe(native_manifest, adapter)
+        prefix = native_probe.prefix
+        syms_type = native_probe.syms_type
+        root_type = native_probe.root_type
+        root_offset_expression = native_probe.root_offset_expression
+        binding_authority = "verilator_native_model_manifest"
     syms_header = obj_dir / f"{prefix}__Syms.h"
-    root_header = obj_dir / f"{prefix}___024root.h"
+    root_header = obj_dir / f"{root_type}.h"
     if not syms_header.is_file() or not root_header.is_file():
         raise PhysicalProbeError(
             f"generated layout headers for {prefix} are missing under {obj_dir}"
         )
-    signals = adapter.get("signals")
-    if not isinstance(signals, Mapping) or not signals:
-        raise PhysicalProbeError("adapter signals must be a non-empty object")
-    syms_members = _member_types(syms_header)
-    specs: list[_ProbeSpec] = []
-    for name, contract in sorted(signals.items()):
-        if not isinstance(contract, Mapping) or not isinstance(
-            contract.get("binding"), str
-        ):
-            raise PhysicalProbeError(f"adapter signal {name!r} has no string binding")
-        specs.append(
-            _binding_spec(
-                str(name),
-                str(contract["binding"]),
-                prefix=prefix,
-                syms_members=syms_members,
+    if native_manifest is None:
+        signals = adapter.get("signals")
+        if not isinstance(signals, Mapping) or not signals:
+            raise PhysicalProbeError("adapter signals must be a non-empty object")
+        syms_members = _member_types(syms_header)
+        specs: list[_ProbeSpec] = []
+        for name, contract in sorted(signals.items()):
+            if not isinstance(contract, Mapping) or not isinstance(
+                contract.get("binding"), str
+            ):
+                raise PhysicalProbeError(
+                    f"adapter signal {name!r} has no string binding"
+                )
+            specs.append(
+                _binding_spec(
+                    str(name),
+                    str(contract["binding"]),
+                    prefix=prefix,
+                    syms_members=syms_members,
+                )
             )
-        )
+    else:
+        specs = list(native_probe.specs)
     coverage_regions: list[dict[str, Any]] = []
     coverage_specs: list[_ProbeSpec] = []
     if coverage_contract is not None:
@@ -225,14 +357,13 @@ def probe_physical_layout(
         verilator_include,
         verilator=verilator,
     )
-    syms_type = f"{prefix}__Syms"
     source_lines = [
         "#include <cstddef>",
         "#include <cstdio>",
         f'#include "{prefix}__Syms.h"',
         "int main() {",
         f'  std::printf("__state__\\t%zu\\t%zu\\n", sizeof({syms_type}), '
-        f"offsetof({syms_type}, TOP));",
+        f"{root_offset_expression});",
     ]
     for index, spec in enumerate(specs):
         source_lines.append(
@@ -342,6 +473,7 @@ def probe_physical_layout(
         "producer": producer,
         "model_prefix": prefix,
         "measurement": "compiled_cpp_sizeof_offsetof",
+        "binding_authority": binding_authority,
         "compiler": _compiler_identity(cxx),
         "cxx_standard": "c++20",
         "probe_source_sha256": _sha256_bytes(source.encode("utf-8")),
@@ -380,10 +512,21 @@ def validate_layout_observation(observation: Mapping[str, Any]) -> None:
         raise PhysicalProbeError("layout observation must have status measured")
     producer = observation.get("producer")
     model_prefix = observation.get("model_prefix")
-    if not isinstance(producer, str) or not producer.startswith(
-        SUPPORTED_VERILATOR_PREFIX
+    binding_authority = observation.get(
+        "binding_authority", "generated_cpp_header_inference"
+    )
+    if binding_authority not in {
+        "generated_cpp_header_inference",
+        "verilator_native_model_manifest",
+    }:
+        raise PhysicalProbeError("layout observation has unsupported binding authority")
+    if not isinstance(producer, str) or not producer:
+        raise PhysicalProbeError("layout observation has no producer")
+    if (
+        binding_authority == "generated_cpp_header_inference"
+        and not producer.startswith(SUPPORTED_VERILATOR_PREFIX)
     ):
-        raise PhysicalProbeError("layout observation has unsupported producer")
+        raise PhysicalProbeError("legacy layout observation has unsupported producer")
     if not isinstance(model_prefix, str) or _IDENTIFIER.fullmatch(model_prefix) is None:
         raise PhysicalProbeError("layout observation has invalid model prefix")
     if observation.get("measurement") != "compiled_cpp_sizeof_offsetof":

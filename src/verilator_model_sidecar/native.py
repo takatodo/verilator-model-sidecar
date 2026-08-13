@@ -87,6 +87,7 @@ def validate_native_manifest(manifest: Mapping[str, Any]) -> None:
             raise NativeManifestError("native RTL field width_bits must be positive")
     instance_bindings: set[tuple[str, str]] = set()
     semantic_paths: set[str] = set()
+    top_instance_count = 0
     for index, instance in enumerate(instances):
         name = f"native manifest instances[{index}]"
         binding = _binding(instance, name)
@@ -102,10 +103,19 @@ def validate_native_manifest(manifest: Mapping[str, Any]) -> None:
         parent = instance.get("parent_instance_id")
         if not isinstance(parent, str) or (parent and parent not in instance_id_set):
             raise NativeManifestError("native instance parent is unresolved")
+        is_top = instance.get("is_top")
+        if not isinstance(is_top, bool):
+            raise NativeManifestError("native instance is_top must be boolean")
+        if is_top:
+            top_instance_count += 1
+            if parent:
+                raise NativeManifestError("native top instance must not have a parent")
         module_binding = instance.get("module_binding")
         if not isinstance(module_binding, Mapping):
             raise NativeManifestError(f"{name}.module_binding must be an object")
         _string(module_binding.get("container"), f"{name}.module_binding.container")
+    if top_instance_count != 1:
+        raise NativeManifestError("native manifest must contain exactly one top instance")
     limitations = manifest.get("limitations")
     if (
         not isinstance(limitations, Mapping)
@@ -120,21 +130,28 @@ def _candidate_index(manifest: Mapping[str, Any]) -> dict[str, list[dict[str, An
     fields = _records(manifest["fields"], "native manifest fields")
     instances = _records(manifest["instances"], "native manifest instances")
     rtl_fields = [field for field in fields if field.get("origin") == "rtl"]
+    top_instance = next(instance for instance in instances if instance.get("is_top"))
+    top_module_binding = top_instance.get("module_binding")
+    assert isinstance(top_module_binding, Mapping)
+    top_container = _string(
+        top_module_binding.get("container"), "native top instance module container"
+    )
     fields_by_container: dict[str, list[Mapping[str, Any]]] = {}
     candidates: dict[str, list[dict[str, Any]]] = {}
     for field in rtl_fields:
         container, member = _binding(field, "native manifest field")
         fields_by_container.setdefault(container, []).append(field)
-        candidates.setdefault(f"{container}.{member}", []).append(
-            {
-                "access_kind": "direct_field",
-                "canonical_name": _string(
-                    field.get("semantic_path"), "native field semantic_path"
-                ),
-                "field": field,
-                "instance": None,
-            }
-        )
+        if container == top_container:
+            candidates.setdefault(f"{container}.{member}", []).append(
+                {
+                    "access_kind": "direct_field",
+                    "canonical_name": _string(
+                        field.get("semantic_path"), "native field semantic_path"
+                    ),
+                    "field": field,
+                    "instance": top_instance,
+                }
+            )
     for instance in instances:
         syms_container, instance_member = _binding(
             instance, "native manifest instance"
@@ -196,6 +213,13 @@ def verify_native_adapter(
         match = matches[0] if len(matches) == 1 else None
         field = match["field"] if match is not None else None
         instance = match["instance"] if match is not None else None
+        field_container = field_member = None
+        state_container = instance_member = None
+        if field is not None and instance is not None:
+            field_container, field_member = _binding(field, "matched native field")
+            state_container, instance_member = _binding(
+                instance, "matched native instance"
+            )
         results.append(
             {
                 "name": str(name),
@@ -213,13 +237,17 @@ def verify_native_adapter(
                 "native_entity": (
                     {
                         "field_id": field["field_id"],
-                        "instance_id": (
-                            instance.get("instance_id") if instance is not None else None
-                        ),
+                        "instance_id": instance.get("instance_id"),
                         "canonical_name": match["canonical_name"],
                         "width_bits": field["width_bits"],
                         "rtl_direction": str(field.get("direction", "NONE")).lower(),
                         "source": field.get("source"),
+                        "generated_storage": {
+                            "state_container": state_container,
+                            "instance_member": instance_member,
+                            "field_container": field_container,
+                            "field_member": field_member,
+                        },
                     }
                     if field is not None
                     else None

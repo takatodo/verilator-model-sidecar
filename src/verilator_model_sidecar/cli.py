@@ -100,6 +100,11 @@ def _parser() -> argparse.ArgumentParser:
     probe.add_argument("--obj-dir", type=Path, required=True)
     probe.add_argument("--adapter", type=Path, required=True)
     probe.add_argument(
+        "--native-manifest",
+        type=Path,
+        help="optional Verilator-native authority for generated storage bindings",
+    )
+    probe.add_argument(
         "--coverage-contract",
         type=Path,
         help="optional coverage arrays to include in the ABI measurement",
@@ -191,6 +196,11 @@ def _read_object(path: Path, description: str) -> dict:
 
 def _probe_layout(arguments: argparse.Namespace) -> int:
     adapter = _read_object(arguments.adapter, "adapter")
+    native_manifest = (
+        _read_object(arguments.native_manifest, "native manifest")
+        if arguments.native_manifest is not None
+        else None
+    )
     coverage_contract = (
         _read_object(arguments.coverage_contract, "coverage contract")
         if arguments.coverage_contract is not None
@@ -200,6 +210,7 @@ def _probe_layout(arguments: argparse.Namespace) -> int:
         obj_dir=arguments.obj_dir,
         adapter=adapter,
         producer=arguments.producer,
+        native_manifest=native_manifest,
         coverage_contract=coverage_contract,
         cxx=arguments.cxx,
         verilator_include=arguments.verilator_include,
