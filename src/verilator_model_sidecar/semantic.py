@@ -1,4 +1,4 @@
-"""Deterministic semantic projection from Verilator 5.050 JSON output."""
+"""Deterministic semantic projection from supported Verilator JSON output."""
 
 from __future__ import annotations
 
@@ -15,11 +15,14 @@ from .coverage import (
     validate_coverage_mapping,
 )
 from .effects import EvalEffectError, validate_eval_effects
+from .producer import (
+    is_supported_semantic_producer,
+    supported_semantic_producers_description,
+)
 
 
 MANIFEST_SCHEMA_VERSION = 1
 MANIFEST_SURFACE = "verilator_model_sidecar_manifest"
-SUPPORTED_VERILATOR_PREFIX = "Verilator 5.050 "
 
 
 class SidecarError(RuntimeError):
@@ -1044,9 +1047,10 @@ def _verilator_version(executable: str) -> str:
 
 
 def _validate_producer(version: str) -> None:
-    if not version.startswith(SUPPORTED_VERILATOR_PREFIX):
+    if not is_supported_semantic_producer(version):
         raise SidecarError(
-            f"unsupported Verilator producer {version!r}; expected 5.050"
+            f"unsupported Verilator producer {version!r}; expected "
+            f"{supported_semantic_producers_description()}"
         )
 
 

@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
 
 from .native_coverage import NativeCoverageError, project_native_toggle_coverage
+from .producer import is_supported_semantic_producer
 
 
 COVERAGE_CONTRACT_SURFACE = "verilator_toggle_coverage_contract"
 COVERAGE_ORACLE_SURFACE = "verilator_toggle_coverage_oracle"
-SUPPORTED_VERILATOR_PREFIX = "Verilator 5.050 "
 
 
 class CoverageMappingError(RuntimeError):
@@ -464,8 +464,10 @@ def build_toggle_coverage_mapping(
 ) -> dict[str, Any]:
     """Join AST declarations, native lowering, and measured counter storage."""
 
-    if not producer.startswith(SUPPORTED_VERILATOR_PREFIX):
-        raise CoverageMappingError("coverage mapping requires Verilator 5.050")
+    if not is_supported_semantic_producer(producer):
+        raise CoverageMappingError(
+            "coverage mapping requires a supported semantic producer"
+        )
     regions = coverage_region_contracts(
         coverage_contract, expected_model_prefix=model_prefix
     )
