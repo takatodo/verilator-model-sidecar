@@ -17,7 +17,9 @@ from .physical import (
 )
 from .native import (
     NativeManifestError,
+    project_native_checkpoint,
     verify_native_adapter,
+    write_native_checkpoint,
     write_native_verification,
 )
 from .effects import (
@@ -146,6 +148,13 @@ def _parser() -> argparse.ArgumentParser:
     native.add_argument("--manifest", type=Path, required=True)
     native.add_argument("--adapter", type=Path, required=True)
     native.add_argument("--output", type=Path, required=True)
+
+    checkpoint = subparsers.add_parser(
+        "project-native-checkpoint",
+        help="project native savable field membership onto stored instances",
+    )
+    checkpoint.add_argument("--manifest", type=Path, required=True)
+    checkpoint.add_argument("--output", type=Path, required=True)
 
     validate = subparsers.add_parser(
         "validate", help="validate a generated model manifest"
@@ -279,6 +288,17 @@ def _verify_native(arguments: argparse.Namespace) -> int:
     return 0 if report["status"] == "matched" else 1
 
 
+def _project_native_checkpoint(arguments: argparse.Namespace) -> int:
+    manifest = _read_object(arguments.manifest, "native manifest")
+    report = project_native_checkpoint(manifest)
+    write_native_checkpoint(arguments.output, report)
+    print(
+        f"wrote {arguments.output}: {report['stored_field_occurrence_count']} "
+        f"stored field occurrences, status={report['status']}"
+    )
+    return 0 if report["status"] == "projected" else 1
+
+
 def _analyze(arguments: argparse.Namespace) -> int:
     adapter = (
         _read_object(arguments.adapter, "adapter")
@@ -378,6 +398,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _classify_effects(arguments)
         if arguments.command == "verify-native":
             return _verify_native(arguments)
+        if arguments.command == "project-native-checkpoint":
+            return _project_native_checkpoint(arguments)
         if arguments.command == "validate":
             return _validate(arguments)
     except (

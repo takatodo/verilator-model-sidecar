@@ -62,6 +62,22 @@ and compiler-measured offsets for the exact generated model. The offsets are
 not a stable cross-version ABI. Pointer-free checkpoint packing, native coverage
 aliases, and native eval effects remain separate fail-closed capabilities.
 
+When the native manifest contains compiler-owned `--savable` membership,
+definition fields can be expanded onto the stored instances without parsing
+generated serializer code:
+
+```bash
+verilator-model-sidecar project-native-checkpoint \
+  --manifest /path/to/model-manifest.json \
+  --output /tmp/native-checkpoint-projection.json
+```
+
+This projection is intentionally limited to field occurrence membership. It
+does not claim runtime-context completeness, serialization order, byte packing,
+pointer freedom, or coverage/timing compatibility. Included storage kinds that
+cannot be projected are reported with `status=incomplete` and a failing exit
+status.
+
 Physical bindings fail closed as `not_analyzed` unless an explicit measured
 layout is supplied. Coverage mapping likewise fails closed unless an explicit
 coverage contract and a layout containing its measured array are supplied.

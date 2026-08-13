@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Mapping
 from pathlib import Path
@@ -12,6 +13,17 @@ NATIVE_MANIFEST_SCHEMA_VERSION = 1
 NATIVE_MANIFEST_SURFACE = "verilator_model_manifest_experimental"
 NATIVE_VERIFICATION_SCHEMA_VERSION = 1
 NATIVE_VERIFICATION_SURFACE = "verilator_native_adapter_verification"
+NATIVE_CHECKPOINT_SCHEMA_VERSION = 1
+NATIVE_CHECKPOINT_SURFACE = "verilator_native_checkpoint_projection"
+
+_CHECKPOINT_INCLUDED_REASON = "serialized_field"
+_CHECKPOINT_EXCLUDED_REASONS = {
+    "systemc_top_io",
+    "parameter",
+    "static_const",
+    "nba_commit_queue",
+    "mtask_state",
+}
 
 
 class NativeManifestError(ValueError):
@@ -28,6 +40,16 @@ def _string(value: object, name: str) -> str:
     if not isinstance(value, str) or not value:
         raise NativeManifestError(f"{name} must be a non-empty string")
     return value
+
+
+def _fingerprint(value: Mapping[str, Any]) -> str:
+    encoded = json.dumps(
+        value,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _binding(row: Mapping[str, Any], name: str) -> tuple[str, str]:
@@ -124,6 +146,69 @@ def validate_native_manifest(manifest: Mapping[str, Any]) -> None:
         raise NativeManifestError("native manifest storage instances are not provided")
     if limitations.get("semantic_instance_topology") != "not_provided":
         raise NativeManifestError("native manifest overclaims semantic instance topology")
+
+
+def validate_native_checkpoint_manifest(manifest: Mapping[str, Any]) -> None:
+    """Validate compiler-owned ``--savable`` field membership only."""
+
+    validate_native_manifest(manifest)
+    fields = _records(manifest.get("fields"), "native manifest fields")
+    projection = manifest.get("checkpoint_projection")
+    if not isinstance(projection, Mapping):
+        raise NativeManifestError("native checkpoint projection must be an object")
+    if projection.get("status") != "field_membership_only":
+        raise NativeManifestError(
+            "native checkpoint projection is not field-membership-only"
+        )
+    if projection.get("authority") != "verilator_savable_field_selection":
+        raise NativeManifestError(
+            "native checkpoint projection authority is unsupported"
+        )
+    if (
+        projection.get("runtime_state") != "not_provided"
+        or projection.get("packing") != "not_provided"
+    ):
+        raise NativeManifestError(
+            "native checkpoint projection overclaims runtime or packing"
+        )
+    included = 0
+    excluded = 0
+    for index, field in enumerate(fields):
+        membership = field.get("checkpoint_membership")
+        if not isinstance(membership, Mapping):
+            raise NativeManifestError(
+                f"native manifest fields[{index}] has no checkpoint membership"
+            )
+        if membership.get("authority") != "verilator_savable_field_selection":
+            raise NativeManifestError(
+                "native checkpoint field authority is unsupported"
+            )
+        status = membership.get("status")
+        reason = membership.get("reason")
+        if status == "included" and reason == _CHECKPOINT_INCLUDED_REASON:
+            included += 1
+        elif status == "excluded" and reason in _CHECKPOINT_EXCLUDED_REASONS:
+            excluded += 1
+        else:
+            raise NativeManifestError(
+                "native checkpoint field membership is unsupported"
+            )
+    if projection.get("included_definition_field_count") != included:
+        raise NativeManifestError(
+            "native checkpoint included field count is inconsistent"
+        )
+    if projection.get("excluded_definition_field_count") != excluded:
+        raise NativeManifestError(
+            "native checkpoint excluded field count is inconsistent"
+        )
+    if included + excluded != len(fields):
+        raise NativeManifestError("native checkpoint membership is incomplete")
+    limitations = manifest.get("limitations")
+    assert isinstance(limitations, Mapping)
+    if limitations.get("checkpoint_field_membership") != "provided":
+        raise NativeManifestError("native checkpoint field membership is not provided")
+    if limitations.get("pointer_free_checkpoint") != "not_provided":
+        raise NativeManifestError("native checkpoint overclaims pointer-free packing")
 
 
 def _candidate_index(manifest: Mapping[str, Any]) -> dict[str, list[dict[str, Any]]]:
@@ -277,7 +362,131 @@ def verify_native_adapter(
     }
 
 
+def project_native_checkpoint(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Expand definition-level savable membership onto stored model instances."""
+
+    validate_native_checkpoint_manifest(manifest)
+    fields = _records(manifest["fields"], "native manifest fields")
+    instances = _records(manifest["instances"], "native manifest instances")
+    instances_by_container: dict[str, list[Mapping[str, Any]]] = {}
+    for instance in instances:
+        module_binding = instance.get("module_binding")
+        assert isinstance(module_binding, Mapping)
+        container = _string(
+            module_binding.get("container"), "native instance module container"
+        )
+        instances_by_container.setdefault(container, []).append(instance)
+    for rows in instances_by_container.values():
+        rows.sort(key=lambda row: str(row["instance_id"]))
+
+    occurrences: list[dict[str, Any]] = []
+    uninstantiated: list[str] = []
+    unsupported: list[dict[str, str]] = []
+    included_definition_count = 0
+    excluded_definition_count = 0
+    for field in sorted(fields, key=lambda row: str(row["field_id"])):
+        membership = field["checkpoint_membership"]
+        assert isinstance(membership, Mapping)
+        if membership["status"] == "excluded":
+            excluded_definition_count += 1
+            continue
+        included_definition_count += 1
+        field_container, field_member = _binding(field, "native checkpoint field")
+        generated_binding = field["generated_binding"]
+        assert isinstance(generated_binding, Mapping)
+        storage = generated_binding.get("storage")
+        if storage != "instance_member":
+            unsupported.append(
+                {
+                    "field_id": _string(field.get("field_id"), "checkpoint field ID"),
+                    "storage": str(storage),
+                }
+            )
+            continue
+        stored_instances = instances_by_container.get(field_container, [])
+        if not stored_instances:
+            uninstantiated.append(
+                _string(field.get("field_id"), "uninstantiated checkpoint field ID")
+            )
+            continue
+        for instance in stored_instances:
+            state_container, instance_member = _binding(
+                instance, "native checkpoint instance"
+            )
+            field_id = _string(field.get("field_id"), "checkpoint field ID")
+            instance_id = _string(
+                instance.get("instance_id"), "checkpoint instance ID"
+            )
+            canonical_name: str | None = None
+            if field.get("origin") == "rtl":
+                if instance.get("is_top") is True:
+                    canonical_name = _string(
+                        field.get("semantic_path"), "checkpoint semantic path"
+                    )
+                else:
+                    instance_path = _string(
+                        instance.get("semantic_path"), "checkpoint instance path"
+                    )
+                    rtl_name = _string(field.get("rtl_name"), "checkpoint RTL name")
+                    canonical_name = f"{instance_path}.{rtl_name}"
+            occurrences.append(
+                {
+                    "occurrence_id": f"{instance_id}|{field_id}",
+                    "field_id": field_id,
+                    "instance_id": instance_id,
+                    "origin": field.get("origin"),
+                    "canonical_name": canonical_name,
+                    "width_bits": field.get("width_bits"),
+                    "generated_storage": {
+                        "state_container": state_container,
+                        "instance_member": instance_member,
+                        "field_container": field_container,
+                        "field_member": field_member,
+                    },
+                }
+            )
+    occurrences.sort(key=lambda row: str(row["occurrence_id"]))
+    unsupported.sort(key=lambda row: row["field_id"])
+    status = "projected" if not unsupported else "incomplete"
+    report: dict[str, Any] = {
+        "schema_version": NATIVE_CHECKPOINT_SCHEMA_VERSION,
+        "surface": NATIVE_CHECKPOINT_SURFACE,
+        "status": status,
+        "producer": manifest.get("producer"),
+        "model": manifest.get("model"),
+        "authority": "verilator_savable_field_selection",
+        "definition_field_count": len(fields),
+        "included_definition_field_count": included_definition_count,
+        "excluded_definition_field_count": excluded_definition_count,
+        "stored_instance_count": len(instances),
+        "stored_field_occurrence_count": len(occurrences),
+        "stored_field_occurrences": occurrences,
+        "uninstantiated_included_definition_field_count": len(uninstantiated),
+        "uninstantiated_included_definition_fields": sorted(uninstantiated),
+        "unsupported_included_definition_field_count": len(unsupported),
+        "unsupported_included_definition_fields": unsupported,
+        "runtime_state": "not_provided",
+        "packing": "not_provided",
+        "non_claims": [
+            "not_a_serialized_byte_order",
+            "not_a_runtime_context_projection",
+            "not_a_pointer_free_checkpoint",
+            "not_coverage_or_timing_checkpoint_compatibility",
+        ],
+    }
+    report["projection_fingerprint"] = _fingerprint(report)
+    return report
+
+
 def write_native_verification(path: Path, report: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def write_native_checkpoint(path: Path, report: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
