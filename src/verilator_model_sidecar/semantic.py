@@ -1098,6 +1098,7 @@ def _manifest_from_artifacts(
     layout_observation: Mapping[str, Any] | None = None,
     physical_oracle: Mapping[str, Any] | None = None,
     coverage_contract: Mapping[str, Any] | None = None,
+    native_manifest: Mapping[str, Any] | None = None,
     coverage_oracle: Mapping[str, Any] | None = None,
     eval_effect_observation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -1133,6 +1134,10 @@ def _manifest_from_artifacts(
     if coverage_contract is not None:
         coverage_contract_sha256 = _sha256_bytes(_canonical_bytes(coverage_contract))
         provenance_identity["coverage_contract_sha256"] = coverage_contract_sha256
+    native_manifest_sha256 = None
+    if native_manifest is not None:
+        native_manifest_sha256 = _sha256_bytes(_canonical_bytes(native_manifest))
+        provenance_identity["native_manifest_sha256"] = native_manifest_sha256
     coverage_oracle_sha256 = None
     if coverage_oracle is not None:
         coverage_oracle_sha256 = _sha256_bytes(_canonical_bytes(coverage_oracle))
@@ -1182,6 +1187,8 @@ def _manifest_from_artifacts(
         raise SidecarError("coverage contract requires a layout observation")
     if coverage_contract is not None and adapter_verification is None:
         raise SidecarError("coverage contract requires an adapter semantic contract")
+    if coverage_contract is not None and native_manifest is None:
+        raise SidecarError("coverage contract requires a native model manifest")
     if coverage_oracle is not None and coverage_contract is None:
         raise SidecarError("coverage oracle requires a coverage contract")
     physical_bindings = {"status": "not_analyzed", "bindings": []}
@@ -1212,9 +1219,9 @@ def _manifest_from_artifacts(
                 meta=meta,
                 semantic_hierarchy=semantic_projection["hierarchy"],
                 source_root=source_root,
-                obj_dir=obj_dir,
                 model_prefix=model_prefix,
                 producer=producer,
+                native_manifest=native_manifest,
                 coverage_contract=coverage_contract,
                 layout_observation=layout_observation,
                 oracle=coverage_oracle,
@@ -1273,6 +1280,8 @@ def _manifest_from_artifacts(
         provenance["physical_oracle_sha256"] = physical_oracle_sha256
     if coverage_contract_sha256 is not None:
         provenance["coverage_contract_sha256"] = coverage_contract_sha256
+    if native_manifest_sha256 is not None:
+        provenance["native_manifest_sha256"] = native_manifest_sha256
     if coverage_oracle_sha256 is not None:
         provenance["coverage_oracle_sha256"] = coverage_oracle_sha256
     if eval_effect_observation_fingerprint is not None:
@@ -1329,6 +1338,7 @@ def analyze_manifest(
     layout_observation: Mapping[str, Any] | None = None,
     physical_oracle: Mapping[str, Any] | None = None,
     coverage_contract: Mapping[str, Any] | None = None,
+    native_manifest: Mapping[str, Any] | None = None,
     coverage_oracle: Mapping[str, Any] | None = None,
     eval_effect_observation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -1347,6 +1357,7 @@ def analyze_manifest(
         layout_observation=layout_observation,
         physical_oracle=physical_oracle,
         coverage_contract=coverage_contract,
+        native_manifest=native_manifest,
         coverage_oracle=coverage_oracle,
         eval_effect_observation=eval_effect_observation,
     )

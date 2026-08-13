@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import sys
 import tempfile
@@ -22,6 +23,16 @@ from verilator_model_sidecar.semantic import resolve_physical_bindings  # noqa: 
 
 PRODUCER = "Verilator 5.050 2026-07-01 rev v5.050"
 NATIVE_PRODUCER = "Verilator native test"
+
+
+def _native_id(kind: str, fields: list[tuple[str, str]]) -> str:
+    framed = kind.encode()
+    for name, value in fields:
+        name_bytes = name.encode()
+        value_bytes = value.encode()
+        framed += str(len(name_bytes)).encode() + b":" + name_bytes
+        framed += str(len(value_bytes)).encode() + b":" + value_bytes
+    return kind + ":" + hashlib.sha256(framed).hexdigest()
 
 
 def _adapter() -> dict:
@@ -62,6 +73,67 @@ def _coverage_contract() -> dict:
 
 
 def _native_manifest() -> dict:
+    instance_id = "rtl_instance:toy"
+    storage_binding = {
+        "container": "Vtoy___024root",
+        "member": "cov",
+        "storage": "instance_member",
+    }
+    storage_id = _native_id(
+        "coverage-storage:v1",
+        [
+            ("semantic_instance_id", instance_id),
+            ("container", storage_binding["container"]),
+            ("member", storage_binding["member"]),
+            ("storage", storage_binding["storage"]),
+        ],
+    )
+    lowering_fields = [
+        ("semantic_instance_id", instance_id),
+        ("filename", "toy.sv"),
+        ("line", "1"),
+        ("column", "1"),
+        ("hierarchy_suffix", ".toy"),
+        ("page", "v_toggle/toy"),
+        ("comment", "clk"),
+        ("begin", "0"),
+        ("end", "0"),
+        ("ranged", "false"),
+        ("template_ordinal", "0"),
+    ]
+    lowering_id = _native_id("toggle-lowering:v1", lowering_fields)
+
+    def observation(transition: str) -> dict:
+        fields = [
+            ("semantic_instance_id", instance_id),
+            ("filename", "toy.sv"),
+            ("line", "1"),
+            ("column", "1"),
+            ("hierarchy_suffix", ".toy"),
+            ("page", "v_toggle/toy"),
+            ("comment", "clk"),
+            ("bit_index", "not_applicable"),
+            ("transition", transition),
+        ]
+        return {
+            "semantic_id": _native_id("toggle-observation:v1", fields),
+            "semantic_instance_id": instance_id,
+            "source": {"file": "toy.sv", "line": 1, "column": 1},
+            "hierarchy_suffix": ".toy",
+            "page": "v_toggle/toy",
+            "comment": "clk",
+            "bit_index_status": "not_applicable",
+            "transition": transition,
+        }
+
+    observations = [observation("1->0"), observation("0->1")]
+    physical_ids = [
+        _native_id(
+            "coverage-word:v1",
+            [("storage_id", storage_id), ("raw_word_index", str(index))],
+        )
+        for index in range(2)
+    ]
     return {
         "schema_version": 1,
         "surface": "verilator_model_manifest_experimental",
@@ -125,9 +197,111 @@ def _native_manifest() -> dict:
                 },
             },
         ],
+        "coverage": {
+            "status": "provided",
+            "authority": "verilator_coverage_lowering",
+            "kind": "toggle_transition",
+            "semantic_id_scheme": "sha256_length_prefixed_utf8_v1",
+            "physical_id_scheme": "sha256_length_prefixed_utf8_v1",
+            "counter_semantics": {
+                "word_bits": 32,
+                "cpp_type": "uint32_t",
+                "hit": "nonzero_word",
+                "alias_aggregation": "logical_or",
+                "transition_order": ["1->0", "0->1"],
+            },
+            "metrics": {
+                "toggle_template_count": 1,
+                "lowering_declaration_count": 1,
+                "semantic_observation_count": 2,
+                "semantic_binding_count": 2,
+                "storage_count": 1,
+                "physical_word_count": 2,
+                "aliased_physical_word_count": 0,
+                "maximum_semantic_observations_per_physical_word": 1,
+                "update_template_count": 1,
+                "update_site_count": 1,
+                "update_region_count": 1,
+                "unsupported_declaration_count": 0,
+                "uninstantiated_local_declaration_count": 0,
+                "unupdated_physical_word_count": 0,
+                "update_only_physical_word_count": 0,
+            },
+            "storages": [
+                {
+                    "storage_id": storage_id,
+                    "semantic_instance_id": instance_id,
+                    "word_bits": 32,
+                    "word_count": 2,
+                    "generated_binding": storage_binding,
+                }
+            ],
+            "lowering_declarations": [
+                {
+                    "lowering_id": lowering_id,
+                    "semantic_instance_id": instance_id,
+                    "storage_id": storage_id,
+                    "raw_base_word": 0,
+                    "template_ordinal": 0,
+                    "source": {"file": "toy.sv", "line": 1, "column": 1},
+                    "hierarchy_suffix": ".toy",
+                    "page": "v_toggle/toy",
+                    "comment": "clk",
+                    "range": {"begin": 0, "end": 0, "ranged": False},
+                }
+            ],
+            "semantic_observations": observations,
+            "bindings": [
+                {
+                    "semantic_id": observations[0]["semantic_id"],
+                    "lowering_id": lowering_id,
+                    "physical_word_id": physical_ids[0],
+                },
+                {
+                    "semantic_id": observations[1]["semantic_id"],
+                    "lowering_id": lowering_id,
+                    "physical_word_id": physical_ids[1],
+                },
+            ],
+            "physical_words": [
+                {
+                    "physical_word_id": physical_ids[0],
+                    "storage_id": storage_id,
+                    "raw_word_index": 0,
+                    "alias_group_id": _native_id(
+                        "coverage-alias-group:v1",
+                        [("member", observations[0]["semantic_id"])],
+                    ),
+                    "member_count": 1,
+                    "hit_aggregation": "direct",
+                    "member_semantic_ids": [observations[0]["semantic_id"]],
+                },
+                {
+                    "physical_word_id": physical_ids[1],
+                    "storage_id": storage_id,
+                    "raw_word_index": 1,
+                    "alias_group_id": _native_id(
+                        "coverage-alias-group:v1",
+                        [("member", observations[1]["semantic_id"])],
+                    ),
+                    "member_count": 1,
+                    "hit_aggregation": "direct",
+                    "member_semantic_ids": [observations[1]["semantic_id"]],
+                },
+            ],
+            "update_regions": [
+                {
+                    "storage_id": storage_id,
+                    "raw_base_word": 0,
+                    "width_bits": 1,
+                    "site_count": 1,
+                }
+            ],
+        },
         "limitations": {
             "generated_storage_instances": "provided",
             "semantic_instance_topology": "not_provided",
+            "coverage_mapping": "provided",
         },
     }
 
@@ -196,6 +370,7 @@ class PhysicalLayoutTest(unittest.TestCase):
                     adapter=_adapter(),
                     producer=NATIVE_PRODUCER,
                     native_manifest=_native_manifest(),
+                    coverage_contract=_coverage_contract(),
                     verilator_include=include_dir,
                 )
 
@@ -210,6 +385,20 @@ class PhysicalLayoutTest(unittest.TestCase):
         bindings = {row["name"]: row for row in observation["bindings"]}
         self.assertEqual(bindings["clock"]["state_offset"], 8)
         self.assertEqual(bindings["done"]["state_offset"], 20)
+        self.assertEqual(
+            observation["coverage_regions"],
+            [
+                {
+                    "name": "toggle",
+                    "binding": "Vtoy__Syms.TOP.cov",
+                    "kind": "toggle_direction_counters",
+                    "word_bits": 32,
+                    "word_count": 2,
+                    "state_offset": 12,
+                    "size_bytes": 8,
+                }
+            ],
+        )
 
     def test_measures_known_cpp_layout_without_local_paths(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

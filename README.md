@@ -5,8 +5,11 @@ machine-readable simulation metadata from an unmodified Verilator release.
 The first supported producer is Verilator 5.050.
 
 The project deliberately starts outside the Verilator source tree. It combines
-Verilator's parser/elaboration JSON with generated C++ provenance, while keeping
-the JSON tree—not generated C++ names—as the source of semantic identities.
+Verilator's parser/elaboration JSON with measured generated C++ layout, while
+keeping the JSON tree—not generated C++ names—as the source of semantic
+identities. An experimental Verilator fork supplies compiler-owned storage,
+checkpoint-membership, and toggle-lowering metadata where released output is
+insufficient.
 
 ## Current contract
 
@@ -26,9 +29,9 @@ The implemented semantic tracer bullet:
 7. measures generated C++ state with a separate `sizeof`/`offsetof` probe; and
 8. joins each measured member to its semantic ID and optionally verifies a
    pinned physical-layout oracle; and
-9. optionally joins JSON `COVERTOGGLEDECL` semantics to generated insertion and
-   update regions, expanding bit/direction identities and preserving every
-   Verilator counter alias explicitly; and
+9. optionally joins JSON `COVERTOGGLEDECL` semantics to native compiler-owned
+   insertion/update regions, expanding bit/direction identities and preserving
+   every Verilator counter alias explicitly without parsing generated C++; and
 10. independently classifies explicit LLVM eval closures as
     `proven_device_clean`, `host_dependent`, or `unknown`, with transitive,
     fail-closed propagation and optional oracle verification.
@@ -58,9 +61,10 @@ verilator-model-sidecar probe-layout \
 ```
 
 This native path verifies names, hierarchy, generated member bindings, widths,
-and compiler-measured offsets for the exact generated model. The offsets are
-not a stable cross-version ABI. Pointer-free checkpoint packing, native coverage
-aliases, and native eval effects remain separate fail-closed capabilities.
+and compiler-measured offsets for the exact generated model. The same manifest
+can authorize toggle storage measurement and semantic-to-physical alias mapping.
+The offsets are not a stable cross-version ABI. Pointer-free checkpoint packing
+and native eval effects remain separate fail-closed capabilities.
 
 When the native manifest contains compiler-owned `--savable` membership,
 definition fields can be expanded onto the stored instances without parsing
@@ -80,7 +84,8 @@ status.
 
 Physical bindings fail closed as `not_analyzed` unless an explicit measured
 layout is supplied. Coverage mapping likewise fails closed unless an explicit
-coverage contract and a layout containing its measured array are supplied.
+native manifest, coverage contract, and layout containing its measured array are
+supplied.
 Checkpoint packing remains `not_analyzed`. Eval effects remain `not_analyzed`
 unless an explicit observation is supplied. A clean classification proves only
 the pinned direct-call LLVM closure under its declared effect policy; the
@@ -91,6 +96,7 @@ proof, CUDA backend, or stable upstream Verilator API.
 
 - Python 3.10 or newer
 - Verilator 5.050 for the end-to-end capture smoke test and generated headers
+- The experimental Verilator manifest fork for native coverage lowering
 - A C++20 compiler for physical-layout measurement
 
 There are no Python runtime dependencies outside the standard library.
@@ -155,6 +161,7 @@ verilator-model-sidecar analyze \
   --layout /tmp/opentitan-uart-layout.json \
   --physical-oracle contracts/opentitan_uart_physical_oracle.json \
   --coverage-contract contracts/opentitan_uart_toggle_coverage.json \
+  --native-manifest /path/to/model-manifest.json \
   --coverage-oracle contracts/opentitan_uart_toggle_coverage_oracle.json \
   --effects /tmp/opentitan-uart-eval-effects.json \
   --output /tmp/opentitan-uart-model-manifest.json
@@ -184,7 +191,7 @@ model_manifest
 ├── adapter_verification      optional, semantic names and widths
 ├── physical_bindings         implemented, measured generated C++ ABI
 ├── checkpoint_projection     not_analyzed
-├── coverage_mapping          implemented, AST ↔ insertion/update ↔ words
+├── coverage_mapping          implemented, AST ↔ native lowering ↔ words
 └── eval_effects              implemented, explicit LLVM direct-call closures
 ```
 
@@ -193,9 +200,10 @@ uniquely with matching widths through a fully resolved 39,379-instance hierarchy
 The physical Contract is also measured: the generated C++ ABI reports a
 2,340,480-byte Syms image, root offset 192, and 13/13 exact field offsets against
 the pinned oracle. The coverage Contract maps 691 AST declarations through 2,764
-elaborated insertion calls and 2,541 update sites into 16,160 directional
+native lowering declarations and 2,541 update sites into 16,160 directional
 semantic observations and all 7,842 physical words. Of those physical words,
-4,858 explicitly aggregate aliases. See the
+4,858 explicitly aggregate aliases. The native path reproduces every existing
+golden metric and fingerprint with no generated C++ coverage parsing. See the
 [semantic evidence](docs/opentitan-uart-semantic-evidence.md),
 [physical evidence](docs/opentitan-uart-physical-evidence.md), and
 [coverage evidence](docs/opentitan-uart-coverage-evidence.md). Eval-effect

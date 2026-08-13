@@ -9,6 +9,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
 
+from .native_coverage import NativeCoverageError, project_native_toggle_coverage
+
 
 COVERAGE_CONTRACT_SURFACE = "verilator_toggle_coverage_contract"
 COVERAGE_ORACLE_SURFACE = "verilator_toggle_coverage_oracle"
@@ -30,10 +32,6 @@ def _canonical_bytes(value: Any) -> bytes:
 
 def _sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
-
-
-def _sha256_file(path: Path) -> str:
-    return _sha256_bytes(path.read_bytes())
 
 
 def _walk(value: Any) -> Iterator[Mapping[str, Any]]:
@@ -385,168 +383,6 @@ def _extract_ast_declarations(
     return result
 
 
-_CPP_STRING = r'(?P<{name}>[^"\\\n]*(?:\\.[^"\\\n]*)*)'
-_INSERT_CALL_RE = re.compile(
-    r"vlSelf->__vlCoverToggleInsert\(\s*"
-    r"(?P<begin>-?\d+)\s*,\s*(?P<end>-?\d+)\s*,\s*(?P<ranged>[01])\s*,\s*"
-    r"vlSelf->__Vcoverage\s*\+\s*(?P<base>\d+)\s*,\s*first\s*,\s*true\s*,\s*"
-    r'"' + _CPP_STRING.format(name="filename") + r'"\s*,\s*'
-    r"(?P<line>\d+)\s*,\s*(?P<column>\d+)\s*,\s*"
-    r'"' + _CPP_STRING.format(name="hierarchy") + r'"\s*,\s*'
-    r'"' + _CPP_STRING.format(name="page") + r'"\s*,\s*'
-    r'"' + _CPP_STRING.format(name="comment") + r'"\s*\);',
-    re.MULTILINE,
-)
-_UPDATE_RE = re.compile(
-    r"VL_COV_TOGGLE_CHG_ST_(?P<storage>[IQW])\(\s*"
-    r"(?P<width>\d+)\s*,\s*vlSelf->__Vcoverage\s*\+\s*"
-    r"(?P<base>\d+)\s*,",
-    re.MULTILINE,
-)
-
-
-def _decode_cpp_string(value: str) -> str:
-    try:
-        decoded = json.loads('"' + value + '"')
-    except json.JSONDecodeError as error:
-        raise CoverageMappingError("unsupported C++ string in coverage metadata") from error
-    if not isinstance(decoded, str):
-        raise CoverageMappingError("coverage metadata string did not decode to text")
-    return decoded
-
-
-def _generated_sources(
-    obj_dir: Path,
-    model_prefix: str,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], dict[str, str]]:
-    calls: list[dict[str, Any]] = []
-    updates: list[dict[str, Any]] = []
-    source_records: list[dict[str, Any]] = []
-    texts: dict[str, str] = {}
-    raw_call_count = 0
-    raw_update_count = 0
-    for path in sorted(obj_dir.glob(f"{model_prefix}*.cpp")):
-        text = path.read_text(encoding="utf-8")
-        relative = path.relative_to(obj_dir).as_posix()
-        parsed_calls = list(_INSERT_CALL_RE.finditer(text))
-        parsed_updates = list(_UPDATE_RE.finditer(text))
-        raw_calls = text.count("vlSelf->__vlCoverToggleInsert(")
-        raw_updates = len(
-            re.findall(r"VL_COV_TOGGLE_CHG_ST_[IQW]\(", text)
-        )
-        raw_call_count += raw_calls
-        raw_update_count += raw_updates
-        if parsed_calls or parsed_updates or "::__vlCoverToggleInsert(" in text:
-            texts[relative] = text
-            source_records.append(
-                {
-                    "path": relative,
-                    "bytes": path.stat().st_size,
-                    "sha256": _sha256_file(path),
-                }
-            )
-        for match in parsed_calls:
-            calls.append(
-                {
-                    "generated_source": relative,
-                    "generated_line": text.count("\n", 0, match.start()) + 1,
-                    "begin": int(match.group("begin")),
-                    "end": int(match.group("end")),
-                    "ranged": match.group("ranged") == "1",
-                    "raw_base_word": int(match.group("base")),
-                    "filename": _decode_cpp_string(match.group("filename")),
-                    "line": int(match.group("line")),
-                    "column": int(match.group("column")),
-                    "hierarchy_suffix": _decode_cpp_string(
-                        match.group("hierarchy")
-                    ),
-                    "page": _decode_cpp_string(match.group("page")),
-                    "comment": _decode_cpp_string(match.group("comment")),
-                }
-            )
-        for match in parsed_updates:
-            updates.append(
-                {
-                    "generated_source": relative,
-                    "generated_line": text.count("\n", 0, match.start()) + 1,
-                    "storage_kind": match.group("storage"),
-                    "width_bits": int(match.group("width")),
-                    "raw_base_word": int(match.group("base")),
-                }
-            )
-    if raw_call_count != len(calls):
-        raise CoverageMappingError(
-            "generated coverage insertion calls include an unsupported form"
-        )
-    if raw_update_count != len(updates):
-        raise CoverageMappingError(
-            "generated coverage update sites include an unsupported form"
-        )
-    if not calls:
-        raise CoverageMappingError("generated sources contain no toggle insertions")
-    if not updates:
-        raise CoverageMappingError("generated sources contain no toggle updates")
-    source_records.sort(key=lambda record: record["path"])
-    return calls, updates, source_records, texts
-
-
-def _function_body(text: str, start: int) -> str:
-    opening = text.find("{", start)
-    if opening < 0:
-        raise CoverageMappingError("toggle helper has no body")
-    depth = 0
-    for index in range(opening, len(text)):
-        if text[index] == "{":
-            depth += 1
-        elif text[index] == "}":
-            depth -= 1
-            if depth == 0:
-                return text[opening : index + 1]
-    raise CoverageMappingError("toggle helper body is unterminated")
-
-
-def _transition_order(
-    texts: Mapping[str, str],
-    model_prefix: str,
-) -> tuple[list[str], dict[str, Any]]:
-    head = re.compile(
-        rf"void\s+{re.escape(model_prefix)}___024root::__vlCoverToggleInsert\s*\("
-    )
-    matches: list[tuple[str, str]] = []
-    for name, text in texts.items():
-        for match in head.finditer(text):
-            matches.append((name, _function_body(text, match.start())))
-    if len(matches) != 1:
-        raise CoverageMappingError(
-            "expected exactly one root __vlCoverToggleInsert helper"
-        )
-    source_name, body = matches[0]
-    direction = re.search(
-        r'commentWithIndex\s*\+=\s*j\s*\?\s*"(?P<true>:[^"]+)"'
-        r'\s*:\s*"(?P<false>:[^"]+)"\s*;',
-        body,
-    )
-    if direction is None:
-        raise CoverageMappingError("cannot derive toggle direction order")
-    if re.search(r"for\s*\(int\s+j\s*=\s*0\s*;\s*j\s*<\s*2\s*;", body) is None:
-        raise CoverageMappingError("toggle helper does not iterate two directions")
-    if re.search(r"\+\+countp\s*;", body) is None:
-        raise CoverageMappingError("toggle helper does not advance the counter pointer")
-    transitions = [
-        direction.group("false").removeprefix(":"),
-        direction.group("true").removeprefix(":"),
-    ]
-    if transitions != ["1->0", "0->1"]:
-        raise CoverageMappingError(
-            f"unsupported Verilator toggle direction order {transitions!r}"
-        )
-    return transitions, {
-        "generated_source": source_name,
-        "word_offset_order": transitions,
-        "counter_stride_words_per_bit": 2,
-    }
-
-
 def _canonical_payload(
     call: Mapping[str, Any],
     *,
@@ -619,14 +455,14 @@ def build_toggle_coverage_mapping(
     meta: Mapping[str, Any],
     semantic_hierarchy: Mapping[str, Any],
     source_root: Path,
-    obj_dir: Path,
     model_prefix: str,
     producer: str,
+    native_manifest: Mapping[str, Any],
     coverage_contract: Mapping[str, Any],
     layout_observation: Mapping[str, Any],
     oracle: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Join AST declarations, generated lowering, and measured counter storage."""
+    """Join AST declarations, native lowering, and measured counter storage."""
 
     if not producer.startswith(SUPPORTED_VERILATOR_PREFIX):
         raise CoverageMappingError("coverage mapping requires Verilator 5.050")
@@ -697,10 +533,59 @@ def build_toggle_coverage_mapping(
         source_root=source_root.resolve(),
         module_definition_ids=module_definition_ids,
     )
-    calls, updates, source_records, generated_texts = _generated_sources(
-        obj_dir.resolve(), model_prefix
-    )
-    transitions, helper = _transition_order(generated_texts, model_prefix)
+    try:
+        native = project_native_toggle_coverage(
+            native_manifest, expected_model_prefix=model_prefix
+        )
+    except NativeCoverageError as error:
+        raise CoverageMappingError(str(error)) from error
+    native_storage_matches = [
+        storage
+        for storage in native["storages"]
+        if storage["binding"] == region_contract["binding"]
+    ]
+    if len(native_storage_matches) != 1:
+        raise CoverageMappingError(
+            "coverage contract does not resolve to one native coverage storage"
+        )
+    native_storage = native_storage_matches[0]
+    if native_storage["word_count"] != word_count:
+        raise CoverageMappingError("native/measured coverage word count mismatch")
+    native_storage_id = native_storage["storage_id"]
+    calls: list[dict[str, Any]] = []
+    for declaration in native["lowering_declarations"]:
+        if declaration["storage_id"] != native_storage_id:
+            continue
+        source = declaration["source"]
+        range_record = declaration["range"]
+        calls.append(
+            {
+                "lowering_id": declaration["lowering_id"],
+                "template_ordinal": declaration["template_ordinal"],
+                "begin": range_record["begin"],
+                "end": range_record["end"],
+                "ranged": range_record["ranged"],
+                "raw_base_word": declaration["raw_base_word"],
+                "filename": _normal_path(str(source["file"]), source_root.resolve()),
+                "line": source["line"],
+                "column": source["column"],
+                "hierarchy_suffix": declaration["hierarchy_suffix"],
+                "page": declaration["page"],
+                "comment": declaration["comment"],
+            }
+        )
+    updates = [
+        region
+        for region in native["update_regions"]
+        if region["storage_id"] == native_storage_id
+    ]
+    transitions = native["transition_order"]
+    helper = {
+        "authority": native["authority"],
+        "native_producer": native["producer"],
+        "word_offset_order": transitions,
+        "counter_stride_words_per_bit": native["counter_stride_words_per_bit"],
+    }
 
     calls_by_hierarchy: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for call in calls:
@@ -807,8 +692,12 @@ def build_toggle_coverage_mapping(
         for call in normalized_calls
     )
     update_regions = Counter(
-        (int(update["raw_base_word"]), int(update["width_bits"]))
-        for update in updates
+        {
+            (int(update["raw_base_word"]), int(update["width_bits"])): int(
+                update["site_count"]
+            )
+            for update in updates
+        }
     )
     if set(insertion_regions) != set(update_regions):
         raise CoverageMappingError(
@@ -887,7 +776,7 @@ def build_toggle_coverage_mapping(
         "maximum_canonical_identities_per_raw_word": max(
             len(members) for members in by_raw_word.values()
         ),
-        "update_site_count": len(updates),
+        "update_site_count": sum(update_regions.values()),
         "update_region_count": len(region_records),
         "updated_raw_word_count": len(updated_words),
     }
@@ -953,7 +842,7 @@ def build_toggle_coverage_mapping(
         "status": status,
         "authority": {
             "semantic": "verilator_json_cover_toggle_declarations",
-            "physical": "generated_cpp_toggle_insertions_and_updates",
+            "physical": "verilator_native_toggle_coverage_lowering",
             "storage": "measured_generated_cpp_abi",
         },
         "model_prefix": model_prefix,
@@ -978,8 +867,9 @@ def build_toggle_coverage_mapping(
         "physical_words": physical_words,
         "lowering": {
             "helper": helper,
-            "generated_source_count": len(source_records),
-            "generated_sources": source_records,
+            "generated_cpp_parse": "not_used",
+            "generated_source_count": 0,
+            "generated_sources": [],
             "regions": region_records,
         },
         "issues": sorted(set(issues)),

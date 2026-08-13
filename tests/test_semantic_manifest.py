@@ -322,7 +322,6 @@ class SemanticManifestTest(unittest.TestCase):
             layout = probe_physical_layout(
                 obj_dir=Path(first_work) / "obj_dir",
                 adapter=tiny_adapter,
-                coverage_contract=tiny_coverage,
                 producer=version.strip(),
             )
             physical_oracle = {
@@ -343,6 +342,20 @@ class SemanticManifestTest(unittest.TestCase):
                 "verilator_model_sidecar.semantic.subprocess.run",
                 side_effect=AssertionError("analyze must not execute subprocesses"),
             ):
+                with self.assertRaisesRegex(
+                    SidecarError, "requires a native model manifest"
+                ):
+                    analyze_manifest(
+                        source_root=ROOT,
+                        top="tiny",
+                        tree_path=Path(first_work) / "Vtiny.tree.json",
+                        meta_path=Path(first_work) / "Vtiny.tree.meta.json",
+                        obj_dir=Path(first_work) / "obj_dir",
+                        producer=version.strip(),
+                        adapter=tiny_adapter,
+                        layout_observation=layout,
+                        coverage_contract=tiny_coverage,
+                    )
                 analyzed = analyze_manifest(
                     source_root=ROOT,
                     top="tiny",
@@ -353,7 +366,6 @@ class SemanticManifestTest(unittest.TestCase):
                     adapter=tiny_adapter,
                     layout_observation=layout,
                     physical_oracle=physical_oracle,
-                    coverage_contract=tiny_coverage,
                 )
 
         self.assertEqual(first, second)
@@ -361,13 +373,10 @@ class SemanticManifestTest(unittest.TestCase):
             analyzed["semantic_projection"], first["semantic_projection"]
         )
         self.assertEqual(analyzed["provenance"]["artifact_mode"], "external")
-        self.assertEqual(analyzed["status"], "coverage_mapping_resolved")
+        self.assertEqual(analyzed["status"], "physical_bindings_verified")
         self.assertEqual(analyzed["physical_bindings"]["verified_count"], 2)
         self.assertEqual(analyzed["physical_bindings"]["mismatch_count"], 0)
-        self.assertEqual(analyzed["coverage_mapping"]["status"], "resolved")
-        self.assertEqual(
-            analyzed["coverage_mapping"]["metrics"]["raw_word_count"], 52
-        )
+        self.assertEqual(analyzed["coverage_mapping"]["status"], "not_analyzed")
         validate_manifest(first)
         entities = {
             entity["name"]: entity

@@ -90,6 +90,11 @@ def _parser() -> argparse.ArgumentParser:
         help="optional toggle coverage array and semantic mapping contract",
     )
     analyze.add_argument(
+        "--native-manifest",
+        type=Path,
+        help="Verilator-native lowering authority required by coverage mapping",
+    )
+    analyze.add_argument(
         "--coverage-oracle",
         type=Path,
         help="optional expected coverage layout, counts, and fingerprints",
@@ -325,6 +330,11 @@ def _analyze(arguments: argparse.Namespace) -> int:
         if arguments.coverage_oracle is not None
         else None
     )
+    native_manifest = (
+        _read_object(arguments.native_manifest, "native manifest")
+        if arguments.native_manifest is not None
+        else None
+    )
     eval_effect_observation = (
         _read_object(arguments.effects, "eval-effect observation")
         if arguments.effects is not None
@@ -341,6 +351,7 @@ def _analyze(arguments: argparse.Namespace) -> int:
         layout_observation=layout,
         physical_oracle=physical_oracle,
         coverage_contract=coverage_contract,
+        native_manifest=native_manifest,
         coverage_oracle=coverage_oracle,
         eval_effect_observation=eval_effect_observation,
     )

@@ -13,6 +13,7 @@ from typing import Any, Mapping
 
 from .coverage import CoverageMappingError, coverage_region_contracts
 from .native import verify_native_adapter
+from .native_coverage import NativeCoverageError, project_native_toggle_coverage
 
 
 LAYOUT_OBSERVATION_SURFACE = "verilator_cpp_layout_observation"
@@ -222,6 +223,71 @@ def _native_probe(
     )
 
 
+def _native_coverage_spec(
+    manifest: Mapping[str, Any],
+    storage: Mapping[str, Any],
+    *,
+    name: str,
+    binding: str,
+) -> _ProbeSpec:
+    generated = storage.get("generated_binding")
+    if not isinstance(generated, Mapping):
+        raise PhysicalProbeError("native coverage storage binding is malformed")
+    field_container = generated.get("container")
+    field_member = generated.get("member")
+    storage_kind = generated.get("storage")
+    for value, description in (
+        (field_container, "field container"),
+        (field_member, "field member"),
+    ):
+        if not isinstance(value, str) or _IDENTIFIER.fullmatch(value) is None:
+            raise PhysicalProbeError(
+                f"native coverage {description} is not a C++ identifier"
+            )
+    if storage_kind == "symbol_table_member":
+        return _ProbeSpec(
+            name=name,
+            binding=binding,
+            offset_expression=f"offsetof({field_container}, {field_member})",
+            size_expression=f"sizeof((({field_container}*)nullptr)->{field_member})",
+        )
+    if storage_kind != "instance_member":
+        raise PhysicalProbeError("native coverage storage kind is unsupported")
+    semantic_instance_id = storage.get("semantic_instance_id")
+    instances = manifest.get("instances")
+    if not isinstance(semantic_instance_id, str) or not isinstance(instances, list):
+        raise PhysicalProbeError("native coverage storage instance is malformed")
+    matches = [
+        row
+        for row in instances
+        if isinstance(row, Mapping) and row.get("instance_id") == semantic_instance_id
+    ]
+    if len(matches) != 1:
+        raise PhysicalProbeError("native coverage storage instance is unresolved")
+    instance_binding = matches[0].get("generated_binding")
+    if not isinstance(instance_binding, Mapping):
+        raise PhysicalProbeError("native coverage instance binding is malformed")
+    state_container = instance_binding.get("container")
+    instance_member = instance_binding.get("member")
+    for value, description in (
+        (state_container, "state container"),
+        (instance_member, "instance member"),
+    ):
+        if not isinstance(value, str) or _IDENTIFIER.fullmatch(value) is None:
+            raise PhysicalProbeError(
+                f"native coverage {description} is not a C++ identifier"
+            )
+    return _ProbeSpec(
+        name=name,
+        binding=binding,
+        offset_expression=(
+            f"offsetof({state_container}, {instance_member}) + "
+            f"offsetof({field_container}, {field_member})"
+        ),
+        size_expression=f"sizeof((({field_container}*)nullptr)->{field_member})",
+    )
+
+
 def _verilator_include_dir(
     explicit: Path | None,
     *,
@@ -285,10 +351,6 @@ def probe_physical_layout(
             raise PhysicalProbeError(
                 "native manifest producer does not match the layout producer"
             )
-        if coverage_contract is not None:
-            raise PhysicalProbeError(
-                "native manifest coverage storage is not provided"
-            )
     obj_dir = obj_dir.resolve()
     if not obj_dir.is_dir():
         raise PhysicalProbeError(f"Verilator object directory does not exist: {obj_dir}")
@@ -344,15 +406,42 @@ def probe_physical_layout(
             )
         except CoverageMappingError as error:
             raise PhysicalProbeError(str(error)) from error
-        for region in coverage_regions:
-            coverage_specs.append(
-                _binding_spec(
-                    str(region["name"]),
-                    str(region["binding"]),
-                    prefix=prefix,
-                    syms_members=syms_members,
+        if native_manifest is None:
+            for region in coverage_regions:
+                coverage_specs.append(
+                    _binding_spec(
+                        str(region["name"]),
+                        str(region["binding"]),
+                        prefix=prefix,
+                        syms_members=syms_members,
+                    )
                 )
-            )
+        else:
+            try:
+                native_coverage = project_native_toggle_coverage(
+                    native_manifest, expected_model_prefix=prefix
+                )
+            except NativeCoverageError as error:
+                raise PhysicalProbeError(str(error)) from error
+            native_storages = native_coverage["storages"]
+            for region in coverage_regions:
+                matches = [
+                    storage
+                    for storage in native_storages
+                    if storage["binding"] == region["binding"]
+                ]
+                if len(matches) != 1:
+                    raise PhysicalProbeError(
+                        "coverage contract does not resolve to one native storage"
+                    )
+                coverage_specs.append(
+                    _native_coverage_spec(
+                        native_manifest,
+                        matches[0],
+                        name=str(region["name"]),
+                        binding=str(region["binding"]),
+                    )
+                )
     include_dir = _verilator_include_dir(
         verilator_include,
         verilator=verilator,
