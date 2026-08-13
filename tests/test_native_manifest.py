@@ -21,6 +21,9 @@ from verilator_model_sidecar.native import (  # noqa: E402
     write_native_checkpoint,
     write_native_verification,
 )
+from verilator_model_sidecar.native_eval import (  # noqa: E402
+    extract_native_eval_closure,
+)
 
 
 def _native_manifest() -> dict[str, object]:
@@ -157,7 +160,177 @@ def _adapter() -> dict[str, object]:
     }
 
 
+def _native_eval_manifest() -> dict[str, object]:
+    manifest = copy.deepcopy(_native_manifest())
+
+    def function(
+        suffix: str,
+        *,
+        calls: list[str] | None = None,
+        accesses: list[dict[str, object]] | None = None,
+        host: list[dict[str, object]] | None = None,
+        unknown: list[dict[str, object]] | None = None,
+        coverage_updates: int = 0,
+        is_entry: bool = False,
+        direct: str = "proven_device_clean",
+        classification: str = "proven_device_clean",
+        reason: str = "no_host_or_unknown_effect_in_final_ast_closure",
+    ) -> dict[str, object]:
+        function_id = f"eval-function:v1:{suffix}"
+        return {
+            "function_id": function_id,
+            "generated_binding": {
+                "container": "Vtiny___024root",
+                "name": f"eval_{suffix}",
+                "kind": "loose_function",
+            },
+            "is_eval_entry": is_entry,
+            "entry_point": is_entry,
+            "slow": False,
+            "direct_state_accesses": accesses or [],
+            "direct_calls": [
+                {"callee_function_id": callee, "site_count": 1}
+                for callee in (calls or [])
+            ],
+            "direct_effects": {
+                "coverage_update_site_count": coverage_updates,
+                "host_dependencies": host or [],
+                "unknown_effects": unknown or [],
+            },
+            "direct_classification": direct,
+            "classification": classification,
+            "reason": reason,
+        }
+
+    clean_id = "eval-function:v1:clean"
+    host_id = "eval-function:v1:host"
+    unknown_id = "eval-function:v1:unknown"
+    functions = [
+        function(
+            "clean",
+            accesses=[
+                {
+                    "field_id": "rtl:tiny.clk_i",
+                    "read_site_count": 1,
+                    "write_site_count": 1,
+                }
+            ],
+            coverage_updates=1,
+        ),
+        function(
+            "entry",
+            calls=[clean_id, host_id, unknown_id],
+            is_entry=True,
+            classification="host_dependent",
+            reason="transitive_host_dependency",
+        ),
+        function(
+            "host",
+            host=[{"category": "scheduler", "site_count": 1}],
+            direct="host_dependent",
+            classification="host_dependent",
+            reason="direct_host_dependency",
+        ),
+        function(
+            "unknown",
+            unknown=[{"kind": "raw_cpp_statement", "site_count": 1}],
+            direct="unknown",
+            classification="unknown",
+            reason="direct_unknown_effect",
+        ),
+    ]
+    entry_id = "eval-function:v1:entry"
+    manifest["eval_regions"] = {
+        "status": "provided",
+        "authority": "verilator_final_ast",
+        "function_id_scheme": "sha256_length_prefixed_utf8_v1",
+        "region_id_scheme": "sha256_length_prefixed_utf8_v1",
+        "classification_policy": {
+            "policy": "conservative_final_ast_effects_v1",
+            "precedence": [
+                "host_dependent",
+                "unknown",
+                "proven_device_clean",
+            ],
+            "propagation": "transitive_call_closure_fixed_point",
+        },
+        "metrics": {
+            "function_count": 4,
+            "region_count": 1,
+            "direct_call_edge_count": 3,
+            "direct_call_site_count": 3,
+            "state_access_binding_count": 1,
+            "state_read_site_count": 1,
+            "state_write_site_count": 1,
+            "coverage_update_site_count": 1,
+            "host_dependency_site_count": 1,
+            "unknown_effect_site_count": 1,
+            "direct_proven_device_clean_function_count": 2,
+            "direct_unknown_function_count": 1,
+            "direct_host_dependent_function_count": 1,
+            "proven_device_clean_function_count": 1,
+            "unknown_function_count": 1,
+            "host_dependent_function_count": 2,
+        },
+        "functions": functions,
+        "regions": [
+            {
+                "region_id": "eval-region:v1:entry",
+                "kind": "main_eval",
+                "entry_function_id": entry_id,
+                "classification": "host_dependent",
+                "reason": "transitive_host_dependency",
+                "dependency_graph": "function_direct_calls",
+                "schedule_semantics": "not_provided",
+                "convergence_semantics": "not_provided",
+            }
+        ],
+        "non_claims": ["schedule_and_convergence_semantics_are_not_provided"],
+    }
+    manifest["limitations"]["eval_regions"] = "provided"
+    return manifest
+
+
 class NativeManifestTest(unittest.TestCase):
+    def test_validates_and_projects_native_eval_closure(self) -> None:
+        projection = extract_native_eval_closure(_native_eval_manifest())
+
+        self.assertEqual(projection["status"], "projected")
+        self.assertEqual(projection["authority"], "verilator_final_ast")
+        self.assertEqual(projection["entry_function_id"], "eval-function:v1:entry")
+        self.assertEqual(projection["classification"], "host_dependent")
+        self.assertEqual(projection["reason"], "transitive_host_dependency")
+        self.assertEqual(projection["reachable_function_count"], 4)
+        self.assertEqual(
+            [row["function_id"] for row in projection["functions"]],
+            [
+                "eval-function:v1:clean",
+                "eval-function:v1:entry",
+                "eval-function:v1:host",
+                "eval-function:v1:unknown",
+            ],
+        )
+
+    def test_native_eval_projection_fails_closed(self) -> None:
+        unknown_callee = _native_eval_manifest()
+        unknown_callee["eval_regions"]["functions"][1]["direct_calls"][0][
+            "callee_function_id"
+        ] = "eval-function:v1:absent"
+        with self.assertRaisesRegex(NativeManifestError, "unknown function"):
+            extract_native_eval_closure(unknown_callee)
+
+        wrong_fixed_point = _native_eval_manifest()
+        wrong_fixed_point["eval_regions"]["functions"][1]["classification"] = "unknown"
+        with self.assertRaisesRegex(NativeManifestError, "fixed-point"):
+            extract_native_eval_closure(wrong_fixed_point)
+
+        overclaimed_schedule = _native_eval_manifest()
+        overclaimed_schedule["eval_regions"]["regions"][0][
+            "schedule_semantics"
+        ] = "provided"
+        with self.assertRaisesRegex(NativeManifestError, "overclaims"):
+            extract_native_eval_closure(overclaimed_schedule)
+
     def test_projects_checkpoint_membership_onto_stored_instances(self) -> None:
         report = project_native_checkpoint(_native_manifest())
 

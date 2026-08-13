@@ -44,6 +44,12 @@ from .native import (
     write_native_verification,
 )
 
+from .native_eval import (
+    NATIVE_EVAL_PROJECTION_SCHEMA_VERSION,
+    NATIVE_EVAL_PROJECTION_SURFACE,
+    extract_native_eval_closure,
+)
+
 from .semantic import (
     MANIFEST_SCHEMA_VERSION,
     MANIFEST_SURFACE,
@@ -68,6 +74,8 @@ __all__ = [
     "LAYOUT_OBSERVATION_SURFACE",
     "NATIVE_CHECKPOINT_SCHEMA_VERSION",
     "NATIVE_CHECKPOINT_SURFACE",
+    "NATIVE_EVAL_PROJECTION_SCHEMA_VERSION",
+    "NATIVE_EVAL_PROJECTION_SURFACE",
     "NATIVE_MANIFEST_SCHEMA_VERSION",
     "NATIVE_MANIFEST_SURFACE",
     "NATIVE_VERIFICATION_SCHEMA_VERSION",
@@ -83,6 +91,7 @@ __all__ = [
     "classify_eval_effects",
     "coverage_region_contracts",
     "extract_semantic_projection",
+    "extract_native_eval_closure",
     "probe_physical_layout",
     "project_native_checkpoint",
     "resolve_physical_bindings",
