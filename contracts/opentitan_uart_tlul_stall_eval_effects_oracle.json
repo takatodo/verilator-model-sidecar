@@ -1,0 +1,63 @@
+{
+  "contract_sha256": "3d6169a317f49fa5c114bed18a21501c10335cc4e7242766f59fa7ac41462a68",
+  "observation_fingerprint": "db14769a2f8558b904329017c747b443f83c62335de99217a30294fe0efed79e",
+  "regions": {
+    "gpu_eval_entry": {
+      "artifact_sha256": "3ebeff079e7ea9fcdcaab68a7e4ca5cb36342cdde9545024de6c3da81f51e558",
+      "classification": "proven_device_clean",
+      "closure_fingerprint": "9fbe54cb6c217111bd24456aede80053ea2312ee33b6935184123e484e9314b7",
+      "entry": "vl_eval_batch_gpu",
+      "metrics": {
+        "alloca_instruction_count": 0,
+        "atomic_instruction_count": 0,
+        "defined_call_site_count": 6,
+        "direct_call_edge_count": 22,
+        "direct_call_site_count": 260,
+        "exception_control_instruction_count": 0,
+        "host_dependency_call_site_count": 0,
+        "host_dependent_function_count": 0,
+        "indirect_call_site_count": 0,
+        "inline_asm_call_site_count": 0,
+        "load_instruction_count": 2614,
+        "memory_intrinsic_call_site_count": 0,
+        "permitted_external_call_site_count": 254,
+        "pointer_conversion_instruction_count": 40,
+        "proven_device_clean_function_count": 7,
+        "reachable_function_count": 7,
+        "store_instruction_count": 2432,
+        "unknown_external_call_site_count": 0,
+        "unknown_function_count": 0
+      }
+    },
+    "verilator_eval": {
+      "artifact_sha256": "cc87b86f50dbac0e650c19283a2a446fdbb08f0375b92d41438ed4d59b7300ed",
+      "classification": "host_dependent",
+      "closure_fingerprint": "393d064b47c7ad46a27db30151d28e9d187a1e9e402ee3dc89925a7812f9485f",
+      "entry": "_Z44Vuart_tlul_stall_gpu_cov_tb___024root___evalP37Vuart_tlul_stall_gpu_cov_tb___024root",
+      "metrics": {
+        "alloca_instruction_count": 0,
+        "atomic_instruction_count": 0,
+        "defined_call_site_count": 13,
+        "direct_call_edge_count": 43,
+        "direct_call_site_count": 297,
+        "exception_control_instruction_count": 3,
+        "host_dependency_call_site_count": 25,
+        "host_dependent_function_count": 7,
+        "indirect_call_site_count": 0,
+        "inline_asm_call_site_count": 0,
+        "load_instruction_count": 4316,
+        "memory_intrinsic_call_site_count": 0,
+        "permitted_external_call_site_count": 259,
+        "pointer_conversion_instruction_count": 0,
+        "proven_device_clean_function_count": 5,
+        "reachable_function_count": 12,
+        "store_instruction_count": 2362,
+        "unknown_external_call_site_count": 0,
+        "unknown_function_count": 0
+      }
+    }
+  },
+  "schema_version": 1,
+  "surface": "verilator_eval_effect_oracle",
+  "target": "OpenTitan.uart:tlul-stall-profile"
+}

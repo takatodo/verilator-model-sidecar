@@ -1,0 +1,63 @@
+{
+  "contract_sha256": "d7b530dc1d748e656bdc4c9eb6ed2ce137a03ead21a2df8d788eb191ca853972",
+  "observation_fingerprint": "dfe88b69f55c3a448354964b5ab08aeabca2bd9559d309d09173d1451870dc61",
+  "regions": {
+    "gpu_eval_entry": {
+      "artifact_sha256": "f5b4c74312edc0be263a40b38144ae70398be8231359a390d042d5315a418a3d",
+      "classification": "proven_device_clean",
+      "closure_fingerprint": "4fc33b6bfff7be78caa477c99720d55d3f86a008d0ab0501b59eada04a3458ac",
+      "entry": "vl_eval_batch_gpu",
+      "metrics": {
+        "alloca_instruction_count": 0,
+        "atomic_instruction_count": 0,
+        "defined_call_site_count": 4,
+        "direct_call_edge_count": 11,
+        "direct_call_site_count": 12,
+        "exception_control_instruction_count": 0,
+        "host_dependency_call_site_count": 0,
+        "host_dependent_function_count": 0,
+        "indirect_call_site_count": 0,
+        "inline_asm_call_site_count": 0,
+        "load_instruction_count": 1898,
+        "memory_intrinsic_call_site_count": 3,
+        "permitted_external_call_site_count": 8,
+        "pointer_conversion_instruction_count": 47,
+        "proven_device_clean_function_count": 5,
+        "reachable_function_count": 5,
+        "store_instruction_count": 1595,
+        "unknown_external_call_site_count": 0,
+        "unknown_function_count": 0
+      }
+    },
+    "verilator_eval": {
+      "artifact_sha256": "f3af030edb118d4546830a1bee7a7770c689e268fd9c4090b8bb0cb240ffb18f",
+      "classification": "host_dependent",
+      "closure_fingerprint": "0ae82996aad0a59de70430b0d6ef54d90d3d25543ee473235be4ca6683fc6a82",
+      "entry": "_Z56Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root___evalP49Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root",
+      "metrics": {
+        "alloca_instruction_count": 0,
+        "atomic_instruction_count": 0,
+        "defined_call_site_count": 10,
+        "direct_call_edge_count": 15,
+        "direct_call_site_count": 17,
+        "exception_control_instruction_count": 0,
+        "host_dependency_call_site_count": 2,
+        "host_dependent_function_count": 1,
+        "indirect_call_site_count": 0,
+        "inline_asm_call_site_count": 0,
+        "load_instruction_count": 2101,
+        "memory_intrinsic_call_site_count": 3,
+        "permitted_external_call_site_count": 5,
+        "pointer_conversion_instruction_count": 0,
+        "proven_device_clean_function_count": 10,
+        "reachable_function_count": 11,
+        "store_instruction_count": 1489,
+        "unknown_external_call_site_count": 0,
+        "unknown_function_count": 0
+      }
+    }
+  },
+  "schema_version": 1,
+  "surface": "verilator_eval_effect_oracle",
+  "target": "VeeR-EH1.axi_lsu_dma_bridge:temporal"
+}

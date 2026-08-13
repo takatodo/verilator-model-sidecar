@@ -1,0 +1,30 @@
+{
+  "bindings": {
+    "cfg_signature_o": {"size_bytes": 4, "state_offset": 728},
+    "dma_route_count_o": {"size_bytes": 4, "state_offset": 792},
+    "done_o": {"size_bytes": 1, "state_offset": 195},
+    "external_route_count_o": {"size_bytes": 4, "state_offset": 788},
+    "functional_coverage_word0_o": {"size_bytes": 4, "state_offset": 812},
+    "functional_coverage_word1_o": {"size_bytes": 4, "state_offset": 816},
+    "maximum_aw_route_queue_depth_o": {"size_bytes": 4, "state_offset": 820},
+    "maximum_dma_read_outstanding_o": {"size_bytes": 4, "state_offset": 824},
+    "oracle_mismatch_count_o": {"size_bytes": 4, "state_offset": 808},
+    "outstanding_request_count_o": {"size_bytes": 4, "state_offset": 828},
+    "progress_signature_o": {"size_bytes": 4, "state_offset": 760},
+    "protocol_oracle_mismatch_count_o": {"size_bytes": 4, "state_offset": 796},
+    "read_count_o": {"size_bytes": 4, "state_offset": 780},
+    "scoreboard_oracle_mismatch_count_o": {"size_bytes": 4, "state_offset": 800},
+    "terminal_oracle_mismatch_count_o": {"size_bytes": 4, "state_offset": 804},
+    "transaction_count_o": {"size_bytes": 4, "state_offset": 776},
+    "write_count_o": {"size_bytes": 4, "state_offset": 784}
+  },
+  "headers": {
+    "root_header_sha256": "4b14fcf9a11798d5e09ae9b07550f68c897ec6bd3ce8d2d8f649a53f6bdf3b4e",
+    "syms_header_sha256": "00c4d0ba0ea08609b5fc31bc5240ca43c56032398108fb2daf685a25a1a2e493"
+  },
+  "model_prefix": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb",
+  "schema_version": 1,
+  "state_image": {"bytes": 78016, "root_offset_bytes": 192},
+  "surface": "verilator_physical_binding_oracle",
+  "target": "VeeR-EH1.axi_lsu_dma_bridge:temporal"
+}

@@ -1,0 +1,90 @@
+{
+  "adapter_id": "verilator",
+  "schema_version": 1,
+  "source_model": {
+    "prefix": "Vsim"
+  },
+  "surface": "verilator_adapter_semantic_contract",
+  "target": "OpenTitan:default:hello:uart-profile",
+  "signals": {
+    "clock": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__clk_i",
+      "direction": "drive",
+      "role": "clock",
+      "width_bits": 1
+    },
+    "gpio_in": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_gpio_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 32
+    },
+    "reset_n": {
+      "active_level": 0,
+      "binding": "Vsim___024root.chip_sim_tb__DOT__rst_ni",
+      "direction": "drive",
+      "role": "reset",
+      "width_bits": 1
+    },
+    "software_done": {
+      "binding": "Vsim__Syms.TOP__chip_sim_tb__DOT__u_sw_test_status_if.sw_test_done",
+      "direction": "observe",
+      "role": "completion",
+      "width_bits": 1
+    },
+    "software_passed": {
+      "binding": "Vsim__Syms.TOP__chip_sim_tb__DOT__u_sw_test_status_if.sw_test_passed",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 1
+    },
+    "spi_csb": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_spi_device_csb_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    },
+    "spi_sck": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_spi_device_sck_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    },
+    "spi_sdi": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_spi_device_sdi_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    },
+    "uart_rx": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_uart_rx_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    },
+    "usb_d": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_usbdev_d_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    },
+    "usb_dn": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_usbdev_dn_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    },
+    "usb_dp": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_usbdev_dp_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    },
+    "usb_sense": {
+      "binding": "Vsim___024root.chip_sim_tb__DOT__cio_usbdev_sense_p2d",
+      "direction": "drive",
+      "role": "input",
+      "width_bits": 1
+    }
+  }
+}

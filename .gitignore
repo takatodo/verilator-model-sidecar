@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+build/
+dist/
+obj_dir/
+artifacts/
+reports/
+model_manifest.json
+layout_observation.json

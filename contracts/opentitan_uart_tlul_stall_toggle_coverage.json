@@ -1,0 +1,15 @@
+{
+  "regions": {
+    "tlul_stall_root": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb__Syms.TOP.__Vcoverage",
+      "kind": "toggle_direction_counters",
+      "word_bits": 32
+    }
+  },
+  "schema_version": 1,
+  "source_model": {
+    "prefix": "Vuart_tlul_stall_gpu_cov_tb"
+  },
+  "surface": "verilator_toggle_coverage_contract",
+  "target": "OpenTitan.uart:tlul-stall-profile"
+}

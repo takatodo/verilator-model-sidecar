@@ -1,0 +1,173 @@
+{
+  "adapter_id": "verilator",
+  "schema_version": 1,
+  "source_model": {
+    "prefix": "Vuart_tlul_stall_gpu_cov_tb"
+  },
+  "surface": "verilator_adapter_semantic_contract",
+  "target": "OpenTitan.uart:tlul-stall-profile",
+  "signals": {
+    "a_gap_cycles_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.a_gap_cycles_o",
+      "direction": "observe",
+      "role": "stall_observation",
+      "width_bits": 32
+    },
+    "cfg_signature_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.cfg_signature_o",
+      "direction": "observe",
+      "role": "configuration",
+      "width_bits": 32
+    },
+    "d_backpressure_cycles_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.d_backpressure_cycles_o",
+      "direction": "observe",
+      "role": "stall_observation",
+      "width_bits": 32
+    },
+    "device_req_accepted_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.device_req_accepted_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "device_rsp_accepted_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.device_rsp_accepted_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "done_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.done_o",
+      "direction": "observe",
+      "role": "completion",
+      "width_bits": 1
+    },
+    "host_req_accepted_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.host_req_accepted_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "host_rsp_accepted_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.host_rsp_accepted_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "oracle_alert_seen_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_alert_seen_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_config_error_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_config_error_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_d_error_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_d_error_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_data_mismatch_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_data_mismatch_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_opcode_mismatch_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_opcode_mismatch_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_protocol_violation_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_protocol_violation_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_request_addr_align_error_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_request_addr_align_error_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_request_reg_error_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_request_reg_error_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_request_tlul_error_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_request_tlul_error_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_response_mismatch_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_response_mismatch_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "oracle_source_mismatch_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.oracle_source_mismatch_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "payload_bytes_checked_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.payload_bytes_checked_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "payload_bytes_written_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.payload_bytes_written_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "progress_cycle_count_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.progress_cycle_count_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "progress_signature_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.progress_signature_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "rsp_queue_overflow_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.rsp_queue_overflow_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "toggle_bitmap_word0_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.toggle_bitmap_word0_o",
+      "direction": "observe",
+      "role": "coverage_summary",
+      "width_bits": 32
+    },
+    "toggle_bitmap_word1_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.toggle_bitmap_word1_o",
+      "direction": "observe",
+      "role": "coverage_summary",
+      "width_bits": 32
+    },
+    "toggle_bitmap_word2_o": {
+      "binding": "Vuart_tlul_stall_gpu_cov_tb___024root.toggle_bitmap_word2_o",
+      "direction": "observe",
+      "role": "coverage_summary",
+      "width_bits": 32
+    }
+  }
+}

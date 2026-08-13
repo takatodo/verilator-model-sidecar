@@ -1,0 +1,113 @@
+{
+  "adapter_id": "verilator",
+  "schema_version": 1,
+  "source_model": {
+    "prefix": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb"
+  },
+  "surface": "verilator_adapter_semantic_contract",
+  "target": "VeeR-EH1.axi_lsu_dma_bridge:temporal",
+  "signals": {
+    "cfg_signature_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.cfg_signature_o",
+      "direction": "observe",
+      "role": "configuration",
+      "width_bits": 32
+    },
+    "dma_route_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.dma_route_count_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "done_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.done_o",
+      "direction": "observe",
+      "role": "completion",
+      "width_bits": 1
+    },
+    "external_route_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.external_route_count_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "functional_coverage_word0_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.functional_coverage_word0_o",
+      "direction": "observe",
+      "role": "coverage_summary",
+      "width_bits": 32
+    },
+    "functional_coverage_word1_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.functional_coverage_word1_o",
+      "direction": "observe",
+      "role": "coverage_summary",
+      "width_bits": 32
+    },
+    "maximum_aw_route_queue_depth_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.maximum_aw_route_queue_depth_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "maximum_dma_read_outstanding_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.maximum_dma_read_outstanding_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "oracle_mismatch_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.oracle_mismatch_count_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "outstanding_request_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.outstanding_request_count_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "progress_signature_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.progress_signature_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "protocol_oracle_mismatch_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.protocol_oracle_mismatch_count_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "read_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.read_count_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "scoreboard_oracle_mismatch_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.scoreboard_oracle_mismatch_count_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "terminal_oracle_mismatch_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.terminal_oracle_mismatch_count_o",
+      "direction": "observe",
+      "role": "oracle",
+      "width_bits": 32
+    },
+    "transaction_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.transaction_count_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    },
+    "write_count_o": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb___024root.write_count_o",
+      "direction": "observe",
+      "role": "progress",
+      "width_bits": 32
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "regions": {
+    "temporal_root": {
+      "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb__Syms.TOP.__Vcoverage",
+      "kind": "toggle_direction_counters",
+      "word_bits": 32
+    }
+  },
+  "schema_version": 1,
+  "source_model": {
+    "prefix": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb"
+  },
+  "surface": "verilator_toggle_coverage_contract",
+  "target": "VeeR-EH1.axi_lsu_dma_bridge:temporal"
+}

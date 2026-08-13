@@ -1,0 +1,40 @@
+{
+  "bindings": {
+    "a_gap_cycles_o": {"size_bytes": 4, "state_offset": 1232},
+    "cfg_signature_o": {"size_bytes": 4, "state_offset": 1136},
+    "d_backpressure_cycles_o": {"size_bytes": 4, "state_offset": 1236},
+    "device_req_accepted_o": {"size_bytes": 4, "state_offset": 1144},
+    "device_rsp_accepted_o": {"size_bytes": 4, "state_offset": 1148},
+    "done_o": {"size_bytes": 1, "state_offset": 196},
+    "host_req_accepted_o": {"size_bytes": 4, "state_offset": 1140},
+    "host_rsp_accepted_o": {"size_bytes": 4, "state_offset": 1152},
+    "oracle_alert_seen_o": {"size_bytes": 4, "state_offset": 1216},
+    "oracle_config_error_o": {"size_bytes": 4, "state_offset": 1220},
+    "oracle_d_error_o": {"size_bytes": 4, "state_offset": 1188},
+    "oracle_data_mismatch_o": {"size_bytes": 4, "state_offset": 1212},
+    "oracle_opcode_mismatch_o": {"size_bytes": 4, "state_offset": 1196},
+    "oracle_protocol_violation_o": {"size_bytes": 4, "state_offset": 1180},
+    "oracle_request_addr_align_error_o": {"size_bytes": 4, "state_offset": 1204},
+    "oracle_request_reg_error_o": {"size_bytes": 4, "state_offset": 1208},
+    "oracle_request_tlul_error_o": {"size_bytes": 4, "state_offset": 1200},
+    "oracle_response_mismatch_o": {"size_bytes": 4, "state_offset": 1184},
+    "oracle_source_mismatch_o": {"size_bytes": 4, "state_offset": 1192},
+    "payload_bytes_checked_o": {"size_bytes": 4, "state_offset": 1228},
+    "payload_bytes_written_o": {"size_bytes": 4, "state_offset": 1224},
+    "progress_cycle_count_o": {"size_bytes": 4, "state_offset": 1160},
+    "progress_signature_o": {"size_bytes": 4, "state_offset": 1164},
+    "rsp_queue_overflow_o": {"size_bytes": 4, "state_offset": 1156},
+    "toggle_bitmap_word0_o": {"size_bytes": 4, "state_offset": 1168},
+    "toggle_bitmap_word1_o": {"size_bytes": 4, "state_offset": 1172},
+    "toggle_bitmap_word2_o": {"size_bytes": 4, "state_offset": 1176}
+  },
+  "headers": {
+    "root_header_sha256": "298f6a33d13102937bc1ced863f20e4c78e046d3ebaf7077345d0df6b7149844",
+    "syms_header_sha256": "90a4806ab56256598b996345f7795378d3136152d4f2d8aef3bb1ab6906fc02d"
+  },
+  "model_prefix": "Vuart_tlul_stall_gpu_cov_tb",
+  "schema_version": 1,
+  "state_image": {"bytes": 42112, "root_offset_bytes": 192},
+  "surface": "verilator_physical_binding_oracle",
+  "target": "OpenTitan.uart:tlul-stall-profile"
+}

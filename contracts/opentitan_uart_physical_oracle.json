@@ -1,0 +1,68 @@
+{
+  "bindings": {
+    "clock": {
+      "size_bytes": 1,
+      "state_offset": 248
+    },
+    "gpio_in": {
+      "size_bytes": 4,
+      "state_offset": 40312
+    },
+    "reset_n": {
+      "size_bytes": 1,
+      "state_offset": 249
+    },
+    "software_done": {
+      "size_bytes": 1,
+      "state_offset": 2307205
+    },
+    "software_passed": {
+      "size_bytes": 1,
+      "state_offset": 2307206
+    },
+    "spi_csb": {
+      "size_bytes": 1,
+      "state_offset": 252
+    },
+    "spi_sck": {
+      "size_bytes": 1,
+      "state_offset": 251
+    },
+    "spi_sdi": {
+      "size_bytes": 1,
+      "state_offset": 253
+    },
+    "uart_rx": {
+      "size_bytes": 1,
+      "state_offset": 250
+    },
+    "usb_d": {
+      "size_bytes": 1,
+      "state_offset": 255
+    },
+    "usb_dn": {
+      "size_bytes": 1,
+      "state_offset": 257
+    },
+    "usb_dp": {
+      "size_bytes": 1,
+      "state_offset": 256
+    },
+    "usb_sense": {
+      "size_bytes": 1,
+      "state_offset": 254
+    }
+  },
+  "headers": {
+    "root_header_sha256": "2fef3acc22813146d4a9e46db39d8f35a104c4c5778243970d49540ac695d06a",
+    "syms_header_sha256": "560673c15c67943b4fa7c36f9e4b1d7c939c54a44a465e2af1598d8478a189c4"
+  },
+  "model_prefix": "Vsim",
+  "schema_version": 1,
+  "state_image": {
+    "bytes": 2340480,
+    "root_offset_bytes": 192
+  },
+  "surface": "verilator_physical_binding_oracle",
+  "target": "OpenTitan:default:hello:uart-profile"
+}

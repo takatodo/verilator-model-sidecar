@@ -1,0 +1,38 @@
+{
+  "fingerprints": {
+    "ast_declaration_manifest_sha256": "b53ad9aa356de80ea411eb12e7a720e63b0d9f76ec851cb23e18a40ad0cee014",
+    "ast_link_manifest_sha256": "1aa799bf391631d7edd72fa21434cf97f7481e5e0dc08940c33891d493337eaa",
+    "canonical_group_manifest_sha256": "45ddb6fbaf7b5da3a928be2f6ebbd169691496c60f09379021f59efe123b4eca",
+    "canonical_manifest_sha256": "07e7abfa22e05cade1f4efd571f0a998a1bb58ac3822f25748721d48cd399da0",
+    "lowering_region_manifest_sha256": "64ff6c187a24869f5445651135b75a6b957afdf54c1b32a5d7b01c8b80eff431",
+    "verilator_binding_sha256": "99731b5a42b4c20d43ce02cf4c8d246ba68c1e697a593294a631d28d0510e12f",
+    "verilator_group_binding_sha256": "3992770b17174d472fe0d0893d52a280aecc870ec023dc32a72d51e01467f387"
+  },
+  "metrics": {
+    "aliased_raw_word_count": 2924,
+    "ast_declaration_count": 436,
+    "covered_instance_count": 3,
+    "insertion_call_count": 436,
+    "maximum_canonical_identities_per_raw_word": 6,
+    "raw_word_count": 9462,
+    "semantic_observation_count": 13120,
+    "update_region_count": 312,
+    "update_site_count": 680,
+    "updated_raw_word_count": 9462
+  },
+  "model_prefix": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb",
+  "region": {
+    "binding": "Vaxi_lsu_dma_bridge_temporal_gpu_cov_tb__Syms.TOP.__Vcoverage",
+    "hit_semantics": "nonzero_word",
+    "kind": "toggle_direction_counters",
+    "name": "temporal_root",
+    "size_bytes": 37848,
+    "state_offset": 2280,
+    "word_bits": 32,
+    "word_count": 9462,
+    "word_offset": 0
+  },
+  "schema_version": 1,
+  "surface": "verilator_toggle_coverage_oracle",
+  "target": "VeeR-EH1.axi_lsu_dma_bridge:temporal"
+}

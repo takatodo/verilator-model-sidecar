@@ -1,0 +1,30 @@
+{
+  "policy": {
+    "classification_precedence": [
+      "host_dependent",
+      "unknown",
+      "proven_device_clean"
+    ],
+    "name": "llvm_device_effects_v1",
+    "permitted_external_prefixes": [
+      "llvm."
+    ]
+  },
+  "regions": {
+    "gpu_eval_entry": {
+      "artifact_role": "gpu_lowered_module",
+      "entry": "vl_eval_batch_gpu",
+      "expected_classification": "proven_device_clean",
+      "input": "gpu_ir"
+    },
+    "verilator_eval": {
+      "artifact_role": "verilator_generated_cpp_llvm",
+      "entry": "_Z44Vuart_tlul_stall_gpu_cov_tb___024root___evalP37Vuart_tlul_stall_gpu_cov_tb___024root",
+      "expected_classification": "host_dependent",
+      "input": "host_ir"
+    }
+  },
+  "schema_version": 1,
+  "surface": "verilator_eval_effect_contract",
+  "target": "OpenTitan.uart:tlul-stall-profile"
+}

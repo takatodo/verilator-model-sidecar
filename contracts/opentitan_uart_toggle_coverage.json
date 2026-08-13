@@ -1,0 +1,15 @@
+{
+  "regions": {
+    "uart_subsystem_root": {
+      "binding": "Vsim__Syms.TOP.__Vcoverage",
+      "kind": "toggle_direction_counters",
+      "word_bits": 32
+    }
+  },
+  "schema_version": 1,
+  "source_model": {
+    "prefix": "Vsim"
+  },
+  "surface": "verilator_toggle_coverage_contract",
+  "target": "OpenTitan:default:hello:uart-profile"
+}

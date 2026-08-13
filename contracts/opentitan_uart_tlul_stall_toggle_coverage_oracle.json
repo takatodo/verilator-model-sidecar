@@ -1,0 +1,38 @@
+{
+  "fingerprints": {
+    "ast_declaration_manifest_sha256": "868b26b8f9dc9eb643f4f19ad1c9df298421b9edaaa062c2ec3a8784d3478a96",
+    "ast_link_manifest_sha256": "4183a8ca1cfbd6dcf549cbbfea68ca72ff2f5c8f70d2cf4a0851941e0ff53899",
+    "canonical_group_manifest_sha256": "609f549e4fad7f3c3a159d35d3c4b6a25aab9e7528a7930dfd94acc413d9a383",
+    "canonical_manifest_sha256": "26f0289376c4b183de6965d077524ab867d8fa363f5143411e91747fa549625b",
+    "lowering_region_manifest_sha256": "bf4bcf0e768be60cadb9d99cc3fbd19d926c15646eb998a41a86b0afa48b3d36",
+    "verilator_binding_sha256": "17096929e90c064a02b809835c39292db99575f3af89b44297910c887d700915",
+    "verilator_group_binding_sha256": "b82b4fc488a210f0751e1cb62707702f759d02e744ef193a2cd9d61e91469991"
+  },
+  "metrics": {
+    "aliased_raw_word_count": 2500,
+    "ast_declaration_count": 1381,
+    "covered_instance_count": 174,
+    "insertion_call_count": 2288,
+    "maximum_canonical_identities_per_raw_word": 165,
+    "raw_word_count": 5024,
+    "semantic_observation_count": 12728,
+    "update_region_count": 612,
+    "update_site_count": 1465,
+    "updated_raw_word_count": 5024
+  },
+  "model_prefix": "Vuart_tlul_stall_gpu_cov_tb",
+  "region": {
+    "binding": "Vuart_tlul_stall_gpu_cov_tb__Syms.TOP.__Vcoverage",
+    "hit_semantics": "nonzero_word",
+    "kind": "toggle_direction_counters",
+    "name": "tlul_stall_root",
+    "size_bytes": 20096,
+    "state_offset": 1824,
+    "word_bits": 32,
+    "word_count": 5024,
+    "word_offset": 0
+  },
+  "schema_version": 1,
+  "surface": "verilator_toggle_coverage_oracle",
+  "target": "OpenTitan.uart:tlul-stall-profile"
+}

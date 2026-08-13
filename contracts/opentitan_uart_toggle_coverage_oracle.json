@@ -1,0 +1,38 @@
+{
+  "fingerprints": {
+    "ast_declaration_manifest_sha256": "6c5f38a50aabb5275785761581753832c2dfd03730c5cddf390cd77be1a6ad20",
+    "ast_link_manifest_sha256": "c9b5831a2cc2a25172d652fb1591f4e53ef3fc63a47872880566cdffaf096e06",
+    "canonical_group_manifest_sha256": "a4a12ec0d77146b13bca06579e044c53af41d2fd7114095f271e9484b351f4f0",
+    "canonical_manifest_sha256": "69586cb1224143b99ede5a5643234ff3d72962c2960cdda6fecde6b346d84ac2",
+    "lowering_region_manifest_sha256": "af492bb928cb09c7396d5eefdfcb942c27b334c8019615595ca2c55385d1cc59",
+    "verilator_binding_sha256": "660e23401201c46ad039e1b723a81500922b790e9efe444ecb76a7084597978c",
+    "verilator_group_binding_sha256": "6515b4ea3899e58aefa74b928e8e65a5c12034187b69c264e16ed8f992533d6b"
+  },
+  "metrics": {
+    "aliased_raw_word_count": 4858,
+    "ast_declaration_count": 691,
+    "covered_instance_count": 20,
+    "insertion_call_count": 2764,
+    "maximum_canonical_identities_per_raw_word": 20,
+    "raw_word_count": 7842,
+    "semantic_observation_count": 16160,
+    "update_region_count": 1271,
+    "update_site_count": 2541,
+    "updated_raw_word_count": 7842
+  },
+  "model_prefix": "Vsim",
+  "region": {
+    "binding": "Vsim__Syms.TOP.__Vcoverage",
+    "hit_semantics": "nonzero_word",
+    "kind": "toggle_direction_counters",
+    "name": "uart_subsystem_root",
+    "size_bytes": 31368,
+    "state_offset": 2275656,
+    "word_bits": 32,
+    "word_count": 7842,
+    "word_offset": 0
+  },
+  "schema_version": 1,
+  "surface": "verilator_toggle_coverage_oracle",
+  "target": "OpenTitan:default:hello:uart-profile"
+}

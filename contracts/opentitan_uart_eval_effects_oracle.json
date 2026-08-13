@@ -1,0 +1,63 @@
+{
+  "contract_sha256": "8fc638ef2f3539c4f306211b9fe58f608586179fa3eefbb2cece87f9d6164886",
+  "observation_fingerprint": "ace00296469772a4b5cb62ae94feaafc19897301f6ef7a234f9dc0c4cb1368e9",
+  "regions": {
+    "gpu_eval_entry": {
+      "artifact_sha256": "eb5aa7eb054446fac2be94f1a851459c184109cd4556eab91456214238814ba0",
+      "classification": "proven_device_clean",
+      "closure_fingerprint": "17d60b36af5285aed66089177145f5cc4deff632b551a2848fa085f0e61065aa",
+      "entry": "vl_eval_batch_gpu",
+      "metrics": {
+        "alloca_instruction_count": 151,
+        "atomic_instruction_count": 0,
+        "defined_call_site_count": 562,
+        "direct_call_edge_count": 994,
+        "direct_call_site_count": 11661,
+        "exception_control_instruction_count": 0,
+        "host_dependency_call_site_count": 0,
+        "host_dependent_function_count": 0,
+        "indirect_call_site_count": 0,
+        "inline_asm_call_site_count": 0,
+        "load_instruction_count": 167985,
+        "memory_intrinsic_call_site_count": 673,
+        "permitted_external_call_site_count": 11099,
+        "pointer_conversion_instruction_count": 0,
+        "proven_device_clean_function_count": 310,
+        "reachable_function_count": 310,
+        "store_instruction_count": 95322,
+        "unknown_external_call_site_count": 0,
+        "unknown_function_count": 0
+      }
+    },
+    "verilator_eval": {
+      "artifact_sha256": "ea84c59e2198b959930c29fae7c888024d0922b511785716df57349d4eebc649",
+      "classification": "host_dependent",
+      "closure_fingerprint": "183e21d19bed836fa84da842d700b030f9704dbe764de06da965277882daade7",
+      "entry": "_Z21Vsim___024root___evalP14Vsim___024root",
+      "metrics": {
+        "alloca_instruction_count": 152,
+        "atomic_instruction_count": 0,
+        "defined_call_site_count": 560,
+        "direct_call_edge_count": 1253,
+        "direct_call_site_count": 12757,
+        "exception_control_instruction_count": 75,
+        "host_dependency_call_site_count": 1040,
+        "host_dependent_function_count": 58,
+        "indirect_call_site_count": 0,
+        "inline_asm_call_site_count": 0,
+        "load_instruction_count": 168582,
+        "memory_intrinsic_call_site_count": 675,
+        "permitted_external_call_site_count": 11134,
+        "pointer_conversion_instruction_count": 0,
+        "proven_device_clean_function_count": 251,
+        "reachable_function_count": 314,
+        "store_instruction_count": 95334,
+        "unknown_external_call_site_count": 23,
+        "unknown_function_count": 5
+      }
+    }
+  },
+  "schema_version": 1,
+  "surface": "verilator_eval_effect_oracle",
+  "target": "OpenTitan:default:hello:uart-profile"
+}
