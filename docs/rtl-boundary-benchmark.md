@@ -134,7 +134,7 @@ These extend the finite-grid schemas documented in
 ## Current evidence status
 
 The Module and its hermetic evidence fixtures prove the Contract mechanics.
-The gpu-rtl-sim `feature/tlul10818-regression` branch also has one admitted
+The gpu-rtl-sim `feature/tlul10818-regression` branch retains the admitted
 OpenTitan runtime smoke profile,
 `tlul10818_2x2_ordered_timing_full_enumeration_v1`, pinned at commit
 `06cc4f3a1a10eced6eefbfe5bfd8cad6717cf3ab`. That profile validates an
@@ -150,9 +150,15 @@ The gpu-rtl-sim profile builder derives the profile entry from admitted
 artifacts, avoiding manual transcription of artifact hashes, report hashes,
 ground-truth summary, comparison IDs, finite axis values, and runner authority.
 
-Completion of the TL-UL #10818 benchmark still requires the same profile, or a
-larger separately admitted profile, to be produced by the external runner or CI
-authority and admitted through the same static pipeline.
+Commit `2b70159` adds the distinct
+`tlul10818_user_authorized_2x2_ordered_timing_v1` profile from a bounded
+user-authorized local runner. Its raw eight-point bad/fixed CPU/GPU
+observations, measured launch timing, and generated reports pass the same
+static pipeline with `runtime_authority.external_closure=true`. The closure
+checker now passes. Bad has four failures, four pass points, four adjacent
+boundary edges, one failure component, and one minimal failing point; fixed has
+zero failures. The report compares all four selectors on one GPU executor and
+separately compares an identical random trace across CPU and GPU backends.
 
 The current work-item state, candidate sweep axes, external blockers, rejected
 claims, and safeguard false-positive diagnostic track are maintained in the
