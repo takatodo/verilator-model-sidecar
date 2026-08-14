@@ -13,6 +13,22 @@ Runtime artifacts are never progress authority by themselves. A runtime item
 becomes proven only after an externally generated artifact is admitted by the
 sidecar and its identity and provenance checks pass.
 
+The gpu-rtl-sim branch `feature/tlul10818-regression` now contains one pinned
+admitted smoke profile,
+`tlul10818_2x2_ordered_timing_full_enumeration_v1`, at commit
+`e61f646f0308ff67755f3f9d80c54990e6306ae1`. Its stable profile validator
+passes for `artifacts/tlul10818_boundary_benchmark` and pins
+`pipeline_result.json`
+`3ffe8e932806f57db699cb80f85771787e1226d920029685eb0762f51bf54135`,
+`evidence_bundle.json`
+`ae65939cb9ab91021800f5aa49a98707ba181eb220f1540dd3b083c65452d7d1`,
+and `runner_observations.json`
+`332b9ba06dc54c2273f38f8449f62c57e85600fda22d1a88a40f7c95c7819255`.
+This is admitted #10818 evidence for the pinned 2x2 timing profile, but its
+runner identity is `local-tlul10818-boundary-runner:codex-v3`; it is therefore
+not promoted as the externally owned CI/operator evidence required for final
+benchmark closure.
+
 ## Status vocabulary
 
 - `PROVEN`: current source and verification evidence establish the item.
@@ -49,12 +65,12 @@ algorithm are not completion criteria.
 | M07 | Static JSON-only admission workflow that cannot invoke the DUT | `PROVEN` | `adjudicate-boundary-benchmark` CLI | Admit the two external JSON documents when they exist. |
 | T01 | Pinned #10818 target identity and compatibility mapping to the existing four actions | `PROVEN` | `gpu-rtl-sim` commits `45ae2d2` and `d4093b7` on `feature/tlul10818-regression` | Preserve as compatibility evidence; do not call it the full boundary grid. |
 | R01 | Runner-visible ordered timing axes for a nontrivial finite grid | `STATIC_READY` | `gpu-rtl-sim` `tlul10818_gpu_schedule.py` exposes `boundary_sweep_space`, `boundary_action_mapping`, and `boundary_patch_script_for_parameters`; `tlul10818_boundary_benchmark.json` pins the Module SHA-256; exact finite values are still external Contract input | External runner/CI declares finite ordered values in `rtl_boundary_experiment_contract`, then enumerates every point. |
-| R02 | Real `rtl_boundary_experiment_contract` with pinned sweep, action domain, backends, policies, budgets, revisions, and manifest hashes | `PENDING_EXTERNAL` | Expected path is recorded; no artifact exists | External runner/CI emits the document and its sweep/action-domain hashes recompute exactly. |
-| R03 | Structured bad/fixed semantic manifests and CPU/GPU projections for every point | `PENDING_EXTERNAL` | Schema and validator exist; no target artifact exists | External runner/CI emits both manifests and every projection passes exact-type equality. |
-| R04 | Complete paired bad/fixed ground truth for every canonical point | `PENDING_EXTERNAL` | Pure completeness check exists; no full-grid observations exist | Every point appears exactly once, bad contains a failure, fixed contains none, and all bad failures disappear. |
-| R05 | Raw policy epochs, fixed confirmations, executions, launches, cycle counts, and monotonic timing | `PENDING_EXTERNAL` | Replay/accounting validator exists; no target trials exist | All declared selector and backend comparison trials replay and account exactly. |
-| A01 | Passing machine-readable adjudication plus deterministic JSON/SVG/Markdown report | `STATIC_READY` | Generator and self-validator pass on hermetic fixtures | R02–R05 are present and the real admission result is `pass`. |
-| A02 | Reproducible selector and CPU/GPU backend comparison for #10818 | `PENDING_EXTERNAL` | Comparison semantics are implemented | A01 passes and the report contains both comparison kinds under identical Contract identities. |
+| R02 | Real `rtl_boundary_experiment_contract` with pinned sweep, action domain, backends, policies, budgets, revisions, and manifest hashes | `PENDING_EXTERNAL` | Local admitted profile `tlul10818_2x2_ordered_timing_full_enumeration_v1` proves the shape for one 8-point grid, but the recorded runner identity is Codex-local rather than external CI/operator | External runner/CI emits the document and its sweep/action-domain hashes recompute exactly. |
+| R03 | Structured bad/fixed semantic manifests and CPU/GPU projections for every point | `PENDING_EXTERNAL` | Local admitted profile contains semantic manifests and exact CPU/GPU projections for every point in the 2x2 timing grid | External runner/CI emits both manifests and every projection passes exact-type equality. |
+| R04 | Complete paired bad/fixed ground truth for every canonical point | `PENDING_EXTERNAL` | Local admitted profile validates 8/8 points: bad has four failures, four passes, four boundary edges, one failure component, one minimal failing point, and fixed has zero failures | External-owned evidence repeats the full enumeration and all bad failures disappear on fixed. |
+| R05 | Raw policy epochs, fixed confirmations, executions, launches, cycle counts, and monotonic timing | `PENDING_EXTERNAL` | Local admitted profile records five trials: random/stratified/refinement/novelty on GPU plus matching random on CPU; all replay/accounting checks pass | External-owned trials replay and account exactly under the same Contract. |
+| A01 | Passing machine-readable adjudication plus deterministic JSON/SVG/Markdown report | `STATIC_READY` | Local admitted profile has passing `rtl_boundary_pipeline_result` plus pinned SVG and Markdown report hashes | R02–R05 are present from external-owned evidence and the real admission result is `pass`. |
+| A02 | Reproducible selector and CPU/GPU backend comparison for #10818 | `PENDING_EXTERNAL` | Local admitted profile contains selector comparison `selectors-on-gpu` and backend comparison `random-cpu-gpu` under identical Contract identities | External-owned A01 passes and the report contains both comparison kinds under identical Contract identities. |
 
 ## Sweep-axis ideas and feasibility
 
@@ -98,10 +114,10 @@ does not attempt to evade or tune around safeguards.
 
 ## Current next action
 
-Declare the exact finite ordered-axis values in the external
-`rtl_boundary_experiment_contract`, then have the external runner/CI enumerate
-R02–R05. Once those artifacts exist, the existing static admission workflow can
-complete A01 and A02.
+Repeat the already admitted 2x2 timing profile through an external-owned
+runner/CI identity, then admit that evidence through the same profile
+materialize/validate entrypoint. Larger timing profiles should be added only as
+new admitted profiles with their own finite-axis values and artifact hashes.
 
 ## Update rule
 
