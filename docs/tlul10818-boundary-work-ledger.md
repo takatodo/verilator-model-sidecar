@@ -16,7 +16,7 @@ sidecar and its identity and provenance checks pass.
 The gpu-rtl-sim branch `feature/tlul10818-regression` now contains one pinned
 admitted smoke profile,
 `tlul10818_2x2_ordered_timing_full_enumeration_v1`, at commit
-`1131935826c0e000d14ef63638032fb38f50b337`. Its stable profile validator
+`0410a4608cb26f70ea6deb7ddc83eec7221f1e95`. Its stable profile validator
 passes for `artifacts/tlul10818_boundary_benchmark` and pins
 `pipeline_result.json`
 `3ffe8e932806f57db699cb80f85771787e1226d920029685eb0762f51bf54135`,
@@ -29,7 +29,10 @@ machine-readable `runtime_authority.external_closure` is `false` and its
 runner identity is `local-tlul10818-boundary-runner:codex-v3`; the profile
 validator checks that identity against `runner_observations.json`. It is
 therefore not promoted as the externally owned CI/operator evidence required
-for final benchmark closure.
+for final benchmark closure. The same commit adds
+`check_tlul10818_boundary_closure.py`, which returns
+`no_valid_external_closure_profile` until a valid admitted profile records
+`runtime_authority.external_closure=true`.
 
 ## Status vocabulary
 
@@ -72,7 +75,7 @@ algorithm are not completion criteria.
 | R04 | Complete paired bad/fixed ground truth for every canonical point | `PENDING_EXTERNAL` | Local admitted profile validates 8/8 points: bad has four failures, four passes, four boundary edges, one failure component, one minimal failing point, and fixed has zero failures | External-owned evidence repeats the full enumeration and all bad failures disappear on fixed. |
 | R05 | Raw policy epochs, fixed confirmations, executions, launches, cycle counts, and monotonic timing | `PENDING_EXTERNAL` | Local admitted profile records five trials: random/stratified/refinement/novelty on GPU plus matching random on CPU; all replay/accounting checks pass | External-owned trials replay and account exactly under the same Contract. |
 | A01 | Passing machine-readable adjudication plus deterministic JSON/SVG/Markdown report | `STATIC_READY` | Local admitted profile has passing `rtl_boundary_pipeline_result` plus pinned SVG and Markdown report hashes | R02–R05 are present from external-owned evidence and the real admission result is `pass`. |
-| A02 | Reproducible selector and CPU/GPU backend comparison for #10818 | `PENDING_EXTERNAL` | Local admitted profile contains selector comparison `selectors-on-gpu` and backend comparison `random-cpu-gpu` under identical Contract identities | External-owned A01 passes and the report contains both comparison kinds under identical Contract identities. |
+| A02 | Reproducible selector and CPU/GPU backend comparison for #10818 | `PENDING_EXTERNAL` | Local admitted profile contains selector comparison `selectors-on-gpu` and backend comparison `random-cpu-gpu` under identical Contract identities; the closure checker currently fails with `no_valid_external_closure_profile` | External-owned A01 passes, the report contains both comparison kinds under identical Contract identities, and the closure checker returns `status=pass`. |
 
 ## Sweep-axis ideas and feasibility
 
