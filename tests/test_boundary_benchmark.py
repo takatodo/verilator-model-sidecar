@@ -564,6 +564,33 @@ class BoundaryBenchmarkTest(unittest.TestCase):
             plot_schema["properties"]["action_domain_sha256"],
             {"$ref": "#/$defs/sha256"},
         )
+        self.assertEqual(
+            adjudication_schema["properties"]["selector_comparisons"]["items"],
+            {"$ref": "#/$defs/selector_comparison"},
+        )
+        self.assertEqual(
+            adjudication_schema["properties"]["backend_comparisons"]["items"],
+            {"$ref": "#/$defs/backend_comparison"},
+        )
+        comparison_row = adjudication_schema["$defs"]["comparison_row"]
+        self.assertIn("accounting", comparison_row["required"])
+        self.assertIn("final_prediction_metrics", comparison_row["required"])
+        self.assertEqual(
+            comparison_row["properties"]["final_prediction_metrics"]["$ref"],
+            "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_analysis.schema.json#/$defs/epoch_prediction_metrics",
+        )
+        accounting = adjudication_schema["$defs"]["accounting"]
+        for field in (
+            "scheduled_state_evals",
+            "unique_state_evals",
+            "duplicate_state_evals",
+            "bad_search_state_evals",
+            "fixed_confirmation_state_evals",
+            "cycle_evals",
+            "batch_launches",
+            "wall_time_ns",
+        ):
+            self.assertIn(field, accounting["required"])
 
     def test_cli_writes_authoritative_boundary_pipeline_index(self) -> None:
         contract, evidence = _bundle()

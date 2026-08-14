@@ -25,11 +25,13 @@
     },
     "selector_comparisons": {
       "type": "array",
-      "items": {"type": "object"}
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/selector_comparison"}
     },
     "backend_comparisons": {
       "type": "array",
-      "items": {"type": "object"}
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/backend_comparison"}
     }
   },
   "allOf": [
@@ -48,6 +50,7 @@
   ],
   "$defs": {
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "trial_id": {"type": "string", "minLength": 1},
     "verified_identity": {
       "type": "object",
       "required": ["action_domain_sha256"],
@@ -77,6 +80,122 @@
       "properties": {
         "code": {"type": "string", "minLength": 1},
         "message": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend_id", "kind", "executor_identity", "resident_width"],
+      "properties": {
+        "backend_id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["cpu", "gpu"]},
+        "executor_identity": {"type": "string", "minLength": 1},
+        "resident_width": {"type": "integer", "minimum": 1}
+      }
+    },
+    "accounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheduled_state_evals",
+        "unique_state_evals",
+        "duplicate_state_evals",
+        "bad_search_state_evals",
+        "fixed_confirmation_state_evals",
+        "cycle_evals",
+        "batch_launches",
+        "wall_time_ns"
+      ],
+      "properties": {
+        "scheduled_state_evals": {"type": "integer", "minimum": 0},
+        "unique_state_evals": {"type": "integer", "minimum": 0},
+        "duplicate_state_evals": {"type": "integer", "minimum": 0},
+        "bad_search_state_evals": {"type": "integer", "minimum": 0},
+        "fixed_confirmation_state_evals": {"type": "integer", "minimum": 0},
+        "cycle_evals": {"type": "integer", "minimum": 0},
+        "batch_launches": {"type": "integer", "minimum": 0},
+        "wall_time_ns": {"type": "integer", "minimum": 0}
+      }
+    },
+    "comparison_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trial_id",
+        "backend",
+        "policy",
+        "accounting",
+        "first_violation",
+        "first_bracket",
+        "first_exact_boundary",
+        "final_prediction_metrics"
+      ],
+      "properties": {
+        "trial_id": {"$ref": "#/$defs/trial_id"},
+        "backend": {"$ref": "#/$defs/backend"},
+        "policy": {
+          "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_trial.schema.json#/$defs/policy"
+        },
+        "accounting": {"$ref": "#/$defs/accounting"},
+        "first_violation": {
+          "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_analysis.schema.json#/$defs/milestone"
+        },
+        "first_bracket": {
+          "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_analysis.schema.json#/$defs/milestone"
+        },
+        "first_exact_boundary": {
+          "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_analysis.schema.json#/$defs/milestone"
+        },
+        "final_prediction_metrics": {
+          "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_analysis.schema.json#/$defs/epoch_prediction_metrics"
+        }
+      }
+    },
+    "selector_comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["comparison_id", "trial_ids", "rows", "backend_id"],
+      "properties": {
+        "comparison_id": {"type": "string", "minLength": 1},
+        "trial_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/trial_id"}
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 2,
+          "items": {"$ref": "#/$defs/comparison_row"}
+        },
+        "backend_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "backend_comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "comparison_id",
+        "trial_ids",
+        "rows",
+        "selection_trace_sha256"
+      ],
+      "properties": {
+        "comparison_id": {"type": "string", "minLength": 1},
+        "trial_ids": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/trial_id"}
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"$ref": "#/$defs/comparison_row"}
+        },
+        "selection_trace_sha256": {"$ref": "#/$defs/sha256"}
       }
     }
   }
