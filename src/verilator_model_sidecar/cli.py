@@ -15,6 +15,24 @@ from .physical import (
     probe_physical_layout,
     write_layout_observation,
 )
+from .opentitan_evidence import (
+    OpenTitanEvidenceError,
+    adjudication_input_error,
+    adjudicate_external_evidence,
+    file_sha256,
+    format_adjudication_report,
+    format_adjudication_summary_report,
+    format_output_validation_report,
+    format_target_contract_report,
+    read_strict_json_object,
+    summarize_adjudications,
+    validate_adjudication_document,
+    validate_adjudication_run_spec,
+    validate_adjudication_summary_document,
+    validate_target_contract_document,
+    write_json_atomic,
+    write_text_atomic,
+)
 from .native import (
     NativeManifestError,
     project_native_checkpoint,
@@ -168,6 +186,66 @@ def _parser() -> argparse.ArgumentParser:
     checkpoint.add_argument("--manifest", type=Path, required=True)
     checkpoint.add_argument("--output", type=Path, required=True)
 
+    opentitan = subparsers.add_parser(
+        "adjudicate-opentitan-evidence",
+        help="statically validate externally generated OpenTitan RTL evidence",
+    )
+    opentitan.add_argument("--target-contract", type=Path, required=True)
+    opentitan.add_argument("--evidence", type=Path, required=True)
+    opentitan.add_argument(
+        "--evidence-root",
+        type=Path,
+        help="root for relative artifact paths; defaults to evidence file directory",
+    )
+    opentitan.add_argument("--output", type=Path, required=True)
+    opentitan.add_argument("--report", type=Path, required=True)
+
+    opentitan_set = subparsers.add_parser(
+        "adjudicate-opentitan-evidence-set",
+        help="summarize multiple externally generated OpenTitan evidence bundles",
+    )
+    opentitan_set.add_argument("--target-contract", type=Path, required=True)
+    opentitan_set.add_argument("--evidence", type=Path, action="append", required=True)
+    opentitan_set.add_argument(
+        "--evidence-root",
+        type=Path,
+        help="root for relative artifact paths; defaults to each evidence file directory",
+    )
+    opentitan_set.add_argument("--output", type=Path, required=True)
+    opentitan_set.add_argument("--report", type=Path, required=True)
+
+    opentitan_contract = subparsers.add_parser(
+        "validate-opentitan-target-contract",
+        help="statically validate an OpenTitan regression target contract",
+    )
+    opentitan_contract.add_argument("--target-contract", type=Path, required=True)
+    opentitan_contract.add_argument("--output", type=Path, required=True)
+    opentitan_contract.add_argument("--report", type=Path, required=True)
+
+    opentitan_run = subparsers.add_parser(
+        "adjudicate-opentitan-run-spec",
+        help="run static OpenTitan evidence adjudication from a checked run spec",
+    )
+    opentitan_run.add_argument("--run-spec", type=Path, required=True)
+    opentitan_run.add_argument("--output", type=Path, required=True)
+    opentitan_run.add_argument("--report", type=Path, required=True)
+
+    opentitan_adjudication_output = subparsers.add_parser(
+        "validate-opentitan-adjudication",
+        help="validate a stored OpenTitan adjudication JSON output",
+    )
+    opentitan_adjudication_output.add_argument("--adjudication", type=Path, required=True)
+    opentitan_adjudication_output.add_argument("--output", type=Path, required=True)
+    opentitan_adjudication_output.add_argument("--report", type=Path, required=True)
+
+    opentitan_summary_output = subparsers.add_parser(
+        "validate-opentitan-adjudication-summary",
+        help="validate a stored OpenTitan adjudication summary JSON output",
+    )
+    opentitan_summary_output.add_argument("--summary", type=Path, required=True)
+    opentitan_summary_output.add_argument("--output", type=Path, required=True)
+    opentitan_summary_output.add_argument("--report", type=Path, required=True)
+
     validate = subparsers.add_parser(
         "validate", help="validate a generated model manifest"
     )
@@ -312,6 +390,304 @@ def _project_native_checkpoint(arguments: argparse.Namespace) -> int:
     return 0 if report["status"] == "projected" else 1
 
 
+def _adjudicate_opentitan_evidence(arguments: argparse.Namespace) -> int:
+    evidence_root = (
+        arguments.evidence_root
+        if arguments.evidence_root is not None
+        else arguments.evidence.parent
+    )
+    input_sha256: dict[str, str] = {}
+    for name, path in (
+        ("target_contract", arguments.target_contract),
+        ("evidence", arguments.evidence),
+    ):
+        try:
+            input_sha256[name] = file_sha256(path)
+        except OSError:
+            pass
+    try:
+        contract = read_strict_json_object(arguments.target_contract)
+        evidence = read_strict_json_object(arguments.evidence)
+        adjudication = adjudicate_external_evidence(
+            target_contract=contract,
+            evidence=evidence,
+            evidence_root=evidence_root,
+        )
+    except (OSError, OpenTitanEvidenceError) as error:
+        adjudication = adjudication_input_error(str(error))
+    adjudication["input_sha256"] = input_sha256
+    write_json_atomic(arguments.output, adjudication)
+    write_text_atomic(arguments.report, format_adjudication_report(adjudication))
+    print(
+        f"wrote {arguments.output}: status={adjudication['status']}, "
+        f"issues={adjudication['issue_count']}"
+    )
+    return 0 if adjudication["status"] == "pass" else 1
+
+
+def _adjudicate_opentitan_evidence_set(arguments: argparse.Namespace) -> int:
+    rows: list[dict[str, object]] = []
+    target_contract_report = None
+    try:
+        contract_sha256 = file_sha256(arguments.target_contract)
+        contract = read_strict_json_object(arguments.target_contract)
+        target_contract_report = validate_target_contract_document(contract)
+    except (OSError, OpenTitanEvidenceError) as error:
+        contract_sha256 = None
+        contract = None
+        for evidence_path in arguments.evidence:
+            adjudication = adjudication_input_error(str(error))
+            input_sha256: dict[str, str] = {}
+            try:
+                input_sha256["evidence"] = file_sha256(evidence_path)
+            except OSError:
+                pass
+            adjudication["input_sha256"] = input_sha256
+            rows.append(
+                {
+                    "evidence_path": evidence_path.as_posix(),
+                    "adjudication": adjudication,
+                }
+            )
+    if contract is not None:
+        for evidence_path in arguments.evidence:
+            evidence_root = (
+                arguments.evidence_root
+                if arguments.evidence_root is not None
+                else evidence_path.parent
+            )
+            input_sha256 = {
+                "target_contract": contract_sha256,
+            }
+            try:
+                input_sha256["evidence"] = file_sha256(evidence_path)
+                evidence = read_strict_json_object(evidence_path)
+                adjudication = adjudicate_external_evidence(
+                    target_contract=contract,
+                    evidence=evidence,
+                    evidence_root=evidence_root,
+                )
+            except (OSError, OpenTitanEvidenceError) as error:
+                adjudication = adjudication_input_error(str(error))
+            adjudication["input_sha256"] = input_sha256
+            rows.append(
+                {
+                    "evidence_path": evidence_path.as_posix(),
+                    "adjudication": adjudication,
+                }
+            )
+    summary = summarize_adjudications(
+        rows,
+        target_contract_sha256=contract_sha256,
+    )
+    if target_contract_report is not None:
+        summary["target_contract"] = target_contract_report
+    write_json_atomic(arguments.output, summary)
+    write_text_atomic(arguments.report, format_adjudication_summary_report(summary))
+    print(
+        f"wrote {arguments.output}: status={summary['status']}, "
+        f"pass={summary['pass_count']}, fail={summary['fail_count']}"
+    )
+    return 0 if summary["status"] == "pass" else 1
+
+
+def _run_spec_path(base: Path, relative: str) -> Path:
+    root = base.resolve()
+    resolved = (root / relative).resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as error:
+        raise OpenTitanEvidenceError(
+            f"run spec path escapes its declared root: {relative}"
+        ) from error
+    return resolved
+
+
+def _adjudicate_opentitan_run_spec(arguments: argparse.Namespace) -> int:
+    input_sha256: dict[str, str] = {}
+    rows: list[dict[str, object]] = []
+    run_report: dict[str, object] | None = None
+    contract_sha256: str | None = None
+    target_contract_report = None
+    try:
+        input_sha256["run_spec"] = file_sha256(arguments.run_spec)
+        run_spec = read_strict_json_object(arguments.run_spec)
+        run_report = validate_adjudication_run_spec(run_spec)
+    except (OSError, OpenTitanEvidenceError) as error:
+        rows.append(
+            {
+                "evidence_path": arguments.run_spec.as_posix(),
+                "adjudication": adjudication_input_error(str(error)),
+            }
+        )
+        summary = summarize_adjudications(rows, target_contract_sha256=None)
+        summary["input_sha256"].update(input_sha256)
+        write_json_atomic(arguments.output, summary)
+        write_text_atomic(arguments.report, format_adjudication_summary_report(summary))
+        print(
+            f"wrote {arguments.output}: status={summary['status']}, "
+            f"pass={summary['pass_count']}, fail={summary['fail_count']}"
+        )
+        return 1
+
+    if run_report["status"] == "pass":
+        base = arguments.run_spec.parent.resolve()
+        try:
+            target_contract_path = _run_spec_path(base, run_spec["target_contract"])
+            evidence_root = _run_spec_path(base, run_spec.get("evidence_root", "."))
+            contract_sha256 = file_sha256(target_contract_path)
+            contract = read_strict_json_object(target_contract_path)
+            target_contract_report = validate_target_contract_document(contract)
+        except (OSError, OpenTitanEvidenceError) as error:
+            contract = None
+            for evidence_path in run_spec["evidence"]:
+                rows.append(
+                    {
+                        "evidence_path": evidence_path,
+                        "adjudication": adjudication_input_error(str(error)),
+                    }
+                )
+        if contract is not None:
+            for evidence_path in run_spec["evidence"]:
+                input_hashes = {
+                    "run_spec": input_sha256["run_spec"],
+                    "target_contract": contract_sha256,
+                }
+                try:
+                    resolved_evidence = _run_spec_path(evidence_root, evidence_path)
+                    input_hashes["evidence"] = file_sha256(resolved_evidence)
+                    evidence = read_strict_json_object(resolved_evidence)
+                    adjudication = adjudicate_external_evidence(
+                        target_contract=contract,
+                        evidence=evidence,
+                        evidence_root=evidence_root,
+                    )
+                except (OSError, OpenTitanEvidenceError) as error:
+                    adjudication = adjudication_input_error(str(error))
+                adjudication["input_sha256"] = input_hashes
+                rows.append(
+                    {
+                        "evidence_path": evidence_path,
+                        "adjudication": adjudication,
+                    }
+                )
+    else:
+        rows.append(
+            {
+                "evidence_path": arguments.run_spec.as_posix(),
+                "adjudication": adjudication_input_error("run spec validation failed"),
+            }
+        )
+    summary = summarize_adjudications(rows, target_contract_sha256=contract_sha256)
+    summary["input_sha256"].update(input_sha256)
+    summary["run_spec"] = run_report
+    if target_contract_report is not None:
+        summary["target_contract"] = target_contract_report
+    write_json_atomic(arguments.output, summary)
+    write_text_atomic(arguments.report, format_adjudication_summary_report(summary))
+    print(
+        f"wrote {arguments.output}: status={summary['status']}, "
+        f"pass={summary['pass_count']}, fail={summary['fail_count']}"
+    )
+    return 0 if summary["status"] == "pass" else 1
+
+
+def _validate_opentitan_target_contract(arguments: argparse.Namespace) -> int:
+    input_sha256: dict[str, str] = {}
+    try:
+        input_sha256["target_contract"] = file_sha256(arguments.target_contract)
+        contract = read_strict_json_object(arguments.target_contract)
+        report = validate_target_contract_document(contract)
+    except (OSError, OpenTitanEvidenceError) as error:
+        report = {
+            "schema_version": 1,
+            "surface": "opentitan_regression_target_contract_report",
+            "status": "fail",
+            "checks": [
+                {
+                    "name": "input_format",
+                    "status": "fail",
+                    "issue_codes": ["adjudication_input_error"],
+                }
+            ],
+            "target_count": 0,
+            "issue_count": 1,
+            "issues": [
+                {
+                    "code": "adjudication_input_error",
+                    "detail": str(error),
+                }
+            ],
+            "targets": [],
+        }
+    report["input_sha256"] = input_sha256
+    write_json_atomic(arguments.output, report)
+    write_text_atomic(arguments.report, format_target_contract_report(report))
+    print(
+        f"wrote {arguments.output}: status={report['status']}, "
+        f"targets={report['target_count']}, issues={report['issue_count']}"
+    )
+    return 0 if report["status"] == "pass" else 1
+
+
+def _validate_opentitan_adjudication_output(arguments: argparse.Namespace) -> int:
+    input_sha256: dict[str, str] = {}
+    try:
+        input_sha256["adjudication"] = file_sha256(arguments.adjudication)
+        adjudication = read_strict_json_object(arguments.adjudication)
+        report = validate_adjudication_document(adjudication)
+    except (OSError, OpenTitanEvidenceError) as error:
+        report = {
+            "schema_version": 1,
+            "surface": "opentitan_regression_adjudication_validation_report",
+            "status": "fail",
+            "issue_count": 1,
+            "issues": [
+                {
+                    "code": "adjudication_input_error",
+                    "detail": str(error),
+                }
+            ],
+        }
+    report["input_sha256"] = input_sha256
+    write_json_atomic(arguments.output, report)
+    write_text_atomic(arguments.report, format_output_validation_report(report))
+    print(
+        f"wrote {arguments.output}: status={report['status']}, "
+        f"issues={report['issue_count']}"
+    )
+    return 0 if report["status"] == "pass" else 1
+
+
+def _validate_opentitan_adjudication_summary_output(arguments: argparse.Namespace) -> int:
+    input_sha256: dict[str, str] = {}
+    try:
+        input_sha256["summary"] = file_sha256(arguments.summary)
+        summary = read_strict_json_object(arguments.summary)
+        report = validate_adjudication_summary_document(summary)
+    except (OSError, OpenTitanEvidenceError) as error:
+        report = {
+            "schema_version": 1,
+            "surface": "opentitan_regression_adjudication_summary_validation_report",
+            "status": "fail",
+            "issue_count": 1,
+            "issues": [
+                {
+                    "code": "adjudication_input_error",
+                    "detail": str(error),
+                }
+            ],
+        }
+    report["input_sha256"] = input_sha256
+    write_json_atomic(arguments.output, report)
+    write_text_atomic(arguments.report, format_output_validation_report(report))
+    print(
+        f"wrote {arguments.output}: status={report['status']}, "
+        f"issues={report['issue_count']}"
+    )
+    return 0 if report["status"] == "pass" else 1
+
+
 def _analyze(arguments: argparse.Namespace) -> int:
     adapter = (
         _read_object(arguments.adapter, "adapter")
@@ -419,6 +795,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _verify_native(arguments)
         if arguments.command == "project-native-checkpoint":
             return _project_native_checkpoint(arguments)
+        if arguments.command == "adjudicate-opentitan-evidence":
+            return _adjudicate_opentitan_evidence(arguments)
+        if arguments.command == "adjudicate-opentitan-evidence-set":
+            return _adjudicate_opentitan_evidence_set(arguments)
+        if arguments.command == "validate-opentitan-target-contract":
+            return _validate_opentitan_target_contract(arguments)
+        if arguments.command == "adjudicate-opentitan-run-spec":
+            return _adjudicate_opentitan_run_spec(arguments)
+        if arguments.command == "validate-opentitan-adjudication":
+            return _validate_opentitan_adjudication_output(arguments)
+        if arguments.command == "validate-opentitan-adjudication-summary":
+            return _validate_opentitan_adjudication_summary_output(arguments)
         if arguments.command == "validate":
             return _validate(arguments)
     except (
@@ -428,6 +816,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         PhysicalProbeError,
         NativeManifestError,
         EvalEffectError,
+        OpenTitanEvidenceError,
     ) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2

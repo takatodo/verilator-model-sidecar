@@ -98,6 +98,16 @@ effect policy. The current manifest is not a pointer-free state ABI,
 arbitrary-input memory-safety proof, CUDA backend, or stable upstream Verilator
 API.
 
+OpenTitan regression-discovery evidence is adjudicated only from externally
+generated bundles. The sidecar validates target identity, bad/fixed revisions,
+semantic CPU/GPU equality, seed-corpus separation, and artifact provenance, but
+does not compile DUTs, run RTL simulation, search/replay failure sequences, or
+emit runner commands. Passing JSON and Markdown reports retain the verified
+revision, checkpoint, oracle, action-domain, and structured semantic-manifest
+identities. Oracle-violation seeds are checked for single-action-deletion
+1-minimality rather than accepted from a `minimal` flag alone. See
+[OpenTitan external evidence adjudication](docs/opentitan-external-evidence-adjudication.md).
+
 ## Requirements
 
 - Python 3.10 or newer
