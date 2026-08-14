@@ -16,7 +16,7 @@ sidecar and its identity and provenance checks pass.
 The gpu-rtl-sim branch `feature/tlul10818-regression` now contains one pinned
 admitted smoke profile,
 `tlul10818_2x2_ordered_timing_full_enumeration_v1`, at commit
-`0410a4608cb26f70ea6deb7ddc83eec7221f1e95`. Its stable profile validator
+`a522a626d632effb2a8c01f70ce4f6449775d683`. Its stable profile validator
 passes for `artifacts/tlul10818_boundary_benchmark` and pins
 `pipeline_result.json`
 `3ffe8e932806f57db699cb80f85771787e1226d920029685eb0762f51bf54135`,

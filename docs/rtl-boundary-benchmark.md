@@ -137,7 +137,7 @@ The Module and its hermetic evidence fixtures prove the Contract mechanics.
 The gpu-rtl-sim `feature/tlul10818-regression` branch also has one admitted
 OpenTitan runtime smoke profile,
 `tlul10818_2x2_ordered_timing_full_enumeration_v1`, pinned at commit
-`0410a4608cb26f70ea6deb7ddc83eec7221f1e95`. That profile validates an
+`a522a626d632effb2a8c01f70ce4f6449775d683`. That profile validates an
 eight-point finite timing grid, bad/fixed disappearance, selector comparison,
 CPU/GPU backend comparison, and deterministic JSON/SVG/Markdown report
 provenance. It is not final external CI/operator closure because its
