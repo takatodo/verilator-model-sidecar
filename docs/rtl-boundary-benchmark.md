@@ -137,11 +137,13 @@ The Module and its hermetic evidence fixtures prove the Contract mechanics.
 The gpu-rtl-sim `feature/tlul10818-regression` branch also has one admitted
 OpenTitan runtime smoke profile,
 `tlul10818_2x2_ordered_timing_full_enumeration_v1`, pinned at commit
-`e61f646f0308ff67755f3f9d80c54990e6306ae1`. That profile validates an
+`1131935826c0e000d14ef63638032fb38f50b337`. That profile validates an
 eight-point finite timing grid, bad/fixed disappearance, selector comparison,
 CPU/GPU backend comparison, and deterministic JSON/SVG/Markdown report
-provenance. It is not final external CI/operator closure because the preserved
-runner identity is `local-tlul10818-boundary-runner:codex-v3`.
+provenance. It is not final external CI/operator closure because its
+machine-readable `runtime_authority.external_closure` is `false` and the
+profile validator binds the preserved runner identity
+`local-tlul10818-boundary-runner:codex-v3` to `runner_observations.json`.
 
 Completion of the TL-UL #10818 benchmark still requires the same profile, or a
 larger separately admitted profile, to be produced by the external runner or CI
