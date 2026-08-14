@@ -34,6 +34,23 @@ runners. It sees only prior bad-revision observations and coverage feature IDs.
 It does not accept complete ground truth, fixed-revision observations, backend
 identity, resident width, or wall-clock timing.
 
+The same selector interface is available as a CLI for external CI harnesses:
+
+```text
+verilator-model-sidecar select-boundary-points \
+  --sweep-space sweep_space.json \
+  --policy policy.json \
+  --completed-public-batches completed_batches.json \
+  --requested-count N \
+  --output selected_points.json
+```
+
+`--completed-public-batches` is optional and defaults to an empty feedback list.
+The output is `rtl_boundary_selector_response` with only `selected_point_ids`;
+its public schema is `contracts/rtl_boundary_selector_response.schema.json`.
+Selector CLI JSON inputs are parsed fail-closed: duplicate object keys and
+non-finite tokens such as `NaN` or `Infinity` are rejected before selection.
+
 `reconstruct_boundary_prediction(sweep_space, reconstructor_spec,
 completed_public_batches)` applies the shared `nearest_observed_graph` version 1
 reconstructor. Each unobserved point inherits the unanimous label of its nearest
@@ -153,6 +170,7 @@ categorical topology also makes it `unbounded`. `first_exact_boundary` is
 
 - `contracts/rtl_boundary_sweep_space.schema.json`
 - `contracts/rtl_boundary_sweep_enumeration.schema.json`
+- `contracts/rtl_boundary_selector_response.schema.json`
 - `contracts/rtl_boundary_ground_truth.schema.json`
 - `contracts/rtl_boundary_analysis.schema.json`
 - `contracts/rtl_boundary_policy_trial.schema.json`

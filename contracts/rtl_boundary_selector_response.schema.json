@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_selector_response.schema.json",
+  "title": "Public RTL boundary selector response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "selected_point_ids"
+  ],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "surface": {"type": "string", "const": "rtl_boundary_selector_response"},
+    "selected_point_ids": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/point_id"},
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "point_id": {
+      "type": "string",
+      "pattern": "^point:v1:[0-9a-f]{64}$"
+    }
+  }
+}

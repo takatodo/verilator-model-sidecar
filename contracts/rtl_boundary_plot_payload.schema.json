@@ -11,6 +11,7 @@
     "experiment_id",
     "target_id",
     "sweep_space_sha256",
+    "action_domain_sha256",
     "point_count",
     "selector_rows",
     "backend_rows"
@@ -22,6 +23,7 @@
     "experiment_id": {"type": "string", "minLength": 1},
     "target_id": {"type": "string", "minLength": 1},
     "sweep_space_sha256": {"$ref": "#/$defs/sha256"},
+    "action_domain_sha256": {"$ref": "#/$defs/sha256"},
     "point_count": {"type": "integer", "minimum": 1},
     "selector_rows": {
       "type": "array",

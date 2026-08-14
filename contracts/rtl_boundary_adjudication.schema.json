@@ -15,7 +15,7 @@
     },
     "input_canonical_sha256": {"$ref": "#/$defs/input_sha256"},
     "input_file_sha256": {"$ref": "#/$defs/input_sha256"},
-    "verified_identity": {"type": "object"},
+    "verified_identity": {"$ref": "#/$defs/verified_identity"},
     "ground_truth_analysis": {
       "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_analysis.schema.json"
     },
@@ -47,6 +47,14 @@
     }
   ],
   "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "verified_identity": {
+      "type": "object",
+      "required": ["action_domain_sha256"],
+      "properties": {
+        "action_domain_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
     "sha256_or_null": {
       "oneOf": [
         {"type": "string", "pattern": "^[0-9a-f]{64}$"},

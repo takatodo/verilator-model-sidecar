@@ -20,7 +20,9 @@ single evidence-admission Interface. It returns a machine-readable `pass` or
 
 `build_boundary_report_bundle(adjudication)` deterministically derives the plot
 payload, SVG, and Markdown table from a passing adjudication. The bundle records
-the adjudication, plot, SVG, and Markdown SHA-256 values.
+the adjudication, action-domain, plot, SVG, and Markdown SHA-256 values. The
+action-domain identity therefore remains visible in the final machine-readable
+payload and Markdown report rather than stopping at adjudication.
 
 `validate_boundary_report_bundle(adjudication, report_bundle)` rebuilds all
 three report representations and byte-compares the stored bundle. Editing a
@@ -46,6 +48,7 @@ The `rtl_boundary_experiment_contract` surface fixes:
 - checkpoint and oracle identities;
 - bad/fixed semantic-manifest hashes and semantic observable names;
 - the canonical finite sweep space and its recomputed SHA-256;
+- one deterministic action-domain row for every canonical sweep point;
 - one shared deterministic reconstructor;
 - CPU and GPU executor identities and resident widths;
 - every trial's policy, logical requested count, and bad-query budget; and
@@ -134,3 +137,7 @@ The Module and its hermetic evidence fixtures prove the Contract mechanics.
 They are not OpenTitan runtime evidence. Completion of the TL-UL #10818
 benchmark still requires the external runner or CI to produce the pinned full
 grid, semantic manifests, raw trials, executions, launches, and timings.
+
+The current work-item state, candidate sweep axes, external blockers, rejected
+claims, and safeguard false-positive diagnostic track are maintained in the
+[`TL-UL #10818 boundary benchmark work ledger`](tlul10818-boundary-work-ledger.md).

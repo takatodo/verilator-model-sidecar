@@ -11,6 +11,8 @@
     "target",
     "sweep_space",
     "sweep_space_sha256",
+    "action_domain",
+    "action_domain_sha256",
     "reconstructor",
     "backends",
     "trials",
@@ -25,6 +27,12 @@
       "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_sweep_space.schema.json"
     },
     "sweep_space_sha256": {"$ref": "#/$defs/sha256"},
+    "action_domain": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/action"}
+    },
+    "action_domain_sha256": {"$ref": "#/$defs/sha256"},
     "reconstructor": {
       "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_trial.schema.json#/$defs/reconstructor"
     },
@@ -46,6 +54,28 @@
   },
   "$defs": {
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "point_id": {"type": "string", "pattern": "^point:v1:[0-9a-f]{64}$"},
+    "scalar": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "integer"},
+        {"type": "boolean"}
+      ]
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/scalar"}
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["point_id", "action", "parameters"],
+      "properties": {
+        "point_id": {"$ref": "#/$defs/point_id"},
+        "action": {"type": "string", "minLength": 1},
+        "parameters": {"$ref": "#/$defs/parameters"}
+      }
+    },
     "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
     "revision_map": {
       "type": "object",

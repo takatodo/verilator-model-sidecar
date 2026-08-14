@@ -62,6 +62,11 @@ from .boundary_report import (
     RTL_BOUNDARY_PIPELINE_RESULT_SURFACE,
     build_boundary_report_bundle,
 )
+from .sweep_boundary import (
+    RTL_BOUNDARY_SELECTOR_RESPONSE_SURFACE,
+    SweepBoundaryError,
+    select_boundary_points,
+)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -266,6 +271,16 @@ def _parser() -> argparse.ArgumentParser:
     boundary_benchmark.add_argument("--evidence", type=Path, required=True)
     boundary_benchmark.add_argument("--output", type=Path, required=True)
 
+    boundary_select = subparsers.add_parser(
+        "select-boundary-points",
+        help="select the next finite-grid boundary points from public feedback only",
+    )
+    boundary_select.add_argument("--sweep-space", type=Path, required=True)
+    boundary_select.add_argument("--policy", type=Path, required=True)
+    boundary_select.add_argument("--completed-public-batches", type=Path)
+    boundary_select.add_argument("--requested-count", type=int, required=True)
+    boundary_select.add_argument("--output", type=Path, required=True)
+
     validate = subparsers.add_parser(
         "validate", help="validate a generated model manifest"
     )
@@ -307,10 +322,38 @@ def _validate(arguments: argparse.Namespace) -> int:
 
 
 def _read_object(path: Path, description: str) -> dict:
-    value = json.loads(path.read_text(encoding="utf-8"))
+    value = _read_strict_json(path, description)
     if not isinstance(value, dict):
         raise SidecarError(f"{description} JSON root must be an object")
     return value
+
+
+def _read_list(path: Path, description: str) -> list:
+    value = _read_strict_json(path, description)
+    if not isinstance(value, list):
+        raise SidecarError(f"{description} JSON root must be a list")
+    return value
+
+
+def _read_strict_json(path: Path, description: str):
+    def reject_constant(token: str) -> None:
+        raise SidecarError(f"{description} contains non-finite JSON token {token}")
+
+    def reject_duplicate_keys(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise SidecarError(
+                    f"{description} contains duplicate JSON key {key!r}"
+                )
+            result[key] = value
+        return result
+
+    return json.loads(
+        path.read_text(encoding="utf-8"),
+        parse_constant=reject_constant,
+        object_pairs_hook=reject_duplicate_keys,
+    )
 
 
 def _probe_layout(arguments: argparse.Namespace) -> int:
@@ -791,6 +834,32 @@ def _adjudicate_boundary_benchmark(arguments: argparse.Namespace) -> int:
     return 0 if pipeline["status"] == "pass" else 1
 
 
+def _select_boundary_points(arguments: argparse.Namespace) -> int:
+    sweep_space = _read_object(arguments.sweep_space, "sweep space")
+    policy = _read_object(arguments.policy, "policy")
+    completed = (
+        _read_list(arguments.completed_public_batches, "completed public batches")
+        if arguments.completed_public_batches is not None
+        else []
+    )
+    selected = select_boundary_points(
+        sweep_space,
+        policy,
+        completed,
+        arguments.requested_count,
+    )
+    output = {
+        "schema_version": RTL_BOUNDARY_BENCHMARK_SCHEMA_VERSION,
+        "surface": RTL_BOUNDARY_SELECTOR_RESPONSE_SURFACE,
+        "selected_point_ids": list(selected),
+    }
+    write_json_atomic(arguments.output, output)
+    print(
+        f"wrote {arguments.output}: selected_point_count={len(selected)}"
+    )
+    return 0
+
+
 def _analyze(arguments: argparse.Namespace) -> int:
     adapter = (
         _read_object(arguments.adapter, "adapter")
@@ -912,6 +981,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _validate_opentitan_adjudication_summary_output(arguments)
         if arguments.command == "adjudicate-boundary-benchmark":
             return _adjudicate_boundary_benchmark(arguments)
+        if arguments.command == "select-boundary-points":
+            return _select_boundary_points(arguments)
         if arguments.command == "validate":
             return _validate(arguments)
     except (
@@ -922,6 +993,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         NativeManifestError,
         EvalEffectError,
         OpenTitanEvidenceError,
+        SweepBoundaryError,
     ) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2

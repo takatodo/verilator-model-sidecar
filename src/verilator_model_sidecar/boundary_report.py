@@ -206,6 +206,17 @@ def _plot_row(
 
 def _build_plot_payload(adjudication: Mapping[str, Any]) -> dict[str, Any]:
     source_sha256 = _sha256(adjudication)
+    verified_identity = adjudication["verified_identity"]
+    action_domain_sha256 = verified_identity.get("action_domain_sha256")
+    if (
+        not isinstance(action_domain_sha256, str)
+        or len(action_domain_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in action_domain_sha256)
+    ):
+        raise BoundaryBenchmarkError(
+            "report_action_domain_identity_invalid",
+            "passing adjudication action-domain SHA-256 is invalid",
+        )
     selector_rows: list[dict[str, Any]] = []
     backend_rows: list[dict[str, Any]] = []
     for comparison in adjudication["selector_comparisons"]:
@@ -229,12 +240,11 @@ def _build_plot_payload(adjudication: Mapping[str, Any]) -> dict[str, Any]:
         "schema_version": RTL_BOUNDARY_BENCHMARK_SCHEMA_VERSION,
         "surface": RTL_BOUNDARY_PLOT_PAYLOAD_SURFACE,
         "source_adjudication_sha256": source_sha256,
-        "experiment_id": adjudication["verified_identity"]["experiment_id"],
-        "target_id": adjudication["verified_identity"]["target"]["target_id"],
-        "sweep_space_sha256": adjudication["verified_identity"][
-            "sweep_space_sha256"
-        ],
-        "point_count": adjudication["verified_identity"]["point_count"],
+        "experiment_id": verified_identity["experiment_id"],
+        "target_id": verified_identity["target"]["target_id"],
+        "sweep_space_sha256": verified_identity["sweep_space_sha256"],
+        "action_domain_sha256": action_domain_sha256,
+        "point_count": verified_identity["point_count"],
         "selector_rows": selector_rows,
         "backend_rows": backend_rows,
     }
@@ -260,6 +270,7 @@ def _format_markdown(payload: Mapping[str, Any], payload_sha256: str) -> str:
         f"- Target: `{payload['target_id']}`",
         f"- Sweep points: `{payload['point_count']}`",
         f"- Sweep-space SHA-256: `{payload['sweep_space_sha256']}`",
+        f"- Action-domain SHA-256: `{payload['action_domain_sha256']}`",
         f"- Source adjudication SHA-256: `{payload['source_adjudication_sha256']}`",
         f"- Plot payload SHA-256: `{payload_sha256}`",
         "",

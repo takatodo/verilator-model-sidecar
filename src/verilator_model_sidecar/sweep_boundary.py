@@ -13,6 +13,7 @@ from typing import Any, Mapping, Sequence
 RTL_BOUNDARY_SCHEMA_VERSION = 1
 RTL_BOUNDARY_SWEEP_SPACE_SURFACE = "rtl_boundary_sweep_space"
 RTL_BOUNDARY_SWEEP_ENUMERATION_SURFACE = "rtl_boundary_sweep_enumeration"
+RTL_BOUNDARY_SELECTOR_RESPONSE_SURFACE = "rtl_boundary_selector_response"
 RTL_BOUNDARY_GROUND_TRUTH_SURFACE = "rtl_boundary_ground_truth"
 RTL_BOUNDARY_ANALYSIS_SURFACE = "rtl_boundary_analysis"
 RTL_BOUNDARY_POLICY_TRIAL_SURFACE = "rtl_boundary_policy_trial"

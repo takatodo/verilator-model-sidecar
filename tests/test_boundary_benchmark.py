@@ -81,6 +81,24 @@ def _manifest(label: str, revision: str) -> dict:
     }
 
 
+def _action_domain(enumeration: dict) -> list[dict]:
+    rows = []
+    for point in enumeration["points"]:
+        parameters = point["parameters"]
+        action = (
+            f"{parameters['request_integrity']}"
+            f"_stall{parameters['stall_cycles']}"
+        )
+        rows.append(
+            {
+                "point_id": point["point_id"],
+                "action": action,
+                "parameters": copy.deepcopy(parameters),
+            }
+        )
+    return rows
+
+
 def _bundle() -> tuple[dict, dict]:
     sweep_space = {
         "schema_version": RTL_BOUNDARY_SCHEMA_VERSION,
@@ -100,6 +118,7 @@ def _bundle() -> tuple[dict, dict]:
         ],
     }
     enumeration = enumerate_sweep_space(sweep_space)
+    action_domain = _action_domain(enumeration)
     revisions = {
         "bad": "1" * 40,
         "fixed": "2" * 40,
@@ -153,6 +172,8 @@ def _bundle() -> tuple[dict, dict]:
         },
         "sweep_space": sweep_space,
         "sweep_space_sha256": enumeration["sweep_space_sha256"],
+        "action_domain": action_domain,
+        "action_domain_sha256": _sha256(action_domain),
         "reconstructor": {
             "kind": "nearest_observed_graph",
             "algorithm_version": 1,
@@ -353,6 +374,10 @@ class BoundaryBenchmarkTest(unittest.TestCase):
         self.assertEqual(result["status"], "pass", result["issues"])
         self.assertEqual(result["verified_identity"]["point_count"], 6)
         self.assertEqual(
+            result["verified_identity"]["action_domain_sha256"],
+            _sha256(contract["action_domain"]),
+        )
+        self.assertEqual(
             result["ground_truth_analysis"]["revisions"]["bad"]["fail_point_count"],
             2,
         )
@@ -389,6 +414,26 @@ class BoundaryBenchmarkTest(unittest.TestCase):
             projection["gpu"]["done"] = True
 
         cases.append((semantic_mismatch, "semantic_cpu_gpu_mismatch"))
+
+        def action_domain_hash_drift(contract: dict, evidence: dict) -> None:
+            contract["action_domain_sha256"] = "0" * 64
+            evidence["experiment_contract_sha256"] = _sha256(contract)
+
+        cases.append((action_domain_hash_drift, "action_domain_hash_mismatch"))
+
+        def action_domain_parameter_drift(contract: dict, evidence: dict) -> None:
+            contract["action_domain"][0]["parameters"]["stall_cycles"] = 1
+            contract["action_domain_sha256"] = _sha256(contract["action_domain"])
+            evidence["experiment_contract_sha256"] = _sha256(contract)
+
+        cases.append((action_domain_parameter_drift, "action_domain_parameters_mismatch"))
+
+        def action_domain_action_duplicate(contract: dict, evidence: dict) -> None:
+            contract["action_domain"][1]["action"] = contract["action_domain"][0]["action"]
+            contract["action_domain_sha256"] = _sha256(contract["action_domain"])
+            evidence["experiment_contract_sha256"] = _sha256(contract)
+
+        cases.append((action_domain_action_duplicate, "action_domain_action_duplicate"))
 
         def fixed_failure(contract: dict, evidence: dict) -> None:
             evidence["ground_truth"]["observations"][0]["fixed_oracle"] = 1
@@ -466,10 +511,18 @@ class BoundaryBenchmarkTest(unittest.TestCase):
         self.assertEqual(first["surface"], RTL_BOUNDARY_REPORT_BUNDLE_SURFACE)
         self.assertEqual(first["plot_payload_sha256"], _sha256(first["plot_payload"]))
         self.assertEqual(
+            first["plot_payload"]["action_domain_sha256"],
+            adjudication["verified_identity"]["action_domain_sha256"],
+        )
+        self.assertEqual(
             first["graph_sha256"],
             hashlib.sha256(first["graph_svg"].encode("utf-8")).hexdigest(),
         )
         self.assertIn(first["plot_payload_sha256"], first["graph_svg"])
+        self.assertIn(
+            adjudication["verified_identity"]["action_domain_sha256"],
+            first["markdown_report"],
+        )
         self.assertIn("Selector comparison on one GPU executor", first["markdown_report"])
         self.assertIn("Same selector across CPU and GPU backends", first["markdown_report"])
         self.assertIn("does not claim unknown-bug discovery", first["markdown_report"])
@@ -481,6 +534,36 @@ class BoundaryBenchmarkTest(unittest.TestCase):
         validation = validate_boundary_report_bundle(adjudication, altered)
         self.assertEqual(validation["status"], "fail")
         self.assertEqual(validation["issues"][0]["code"], "report_bundle_mismatch")
+
+        missing_identity = copy.deepcopy(adjudication)
+        del missing_identity["verified_identity"]["action_domain_sha256"]
+        validation = validate_boundary_report_bundle(missing_identity, first)
+        self.assertEqual(validation["status"], "fail")
+        self.assertEqual(
+            validation["issues"][0]["code"],
+            "report_action_domain_identity_invalid",
+        )
+
+    def test_public_report_schemas_require_action_domain_identity(self) -> None:
+        adjudication_schema = json.loads(
+            (ROOT / "contracts" / "rtl_boundary_adjudication.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        plot_schema = json.loads(
+            (ROOT / "contracts" / "rtl_boundary_plot_payload.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertIn(
+            "action_domain_sha256",
+            adjudication_schema["$defs"]["verified_identity"]["required"],
+        )
+        self.assertIn("action_domain_sha256", plot_schema["required"])
+        self.assertEqual(
+            plot_schema["properties"]["action_domain_sha256"],
+            {"$ref": "#/$defs/sha256"},
+        )
 
     def test_cli_writes_authoritative_boundary_pipeline_index(self) -> None:
         contract, evidence = _bundle()

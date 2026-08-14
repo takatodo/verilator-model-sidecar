@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from verilator_model_sidecar.sweep_boundary import (  # noqa: E402
     RTL_BOUNDARY_POLICY_ANALYSIS_SURFACE,
     RTL_BOUNDARY_POLICY_TRIAL_SURFACE,
     RTL_BOUNDARY_SCHEMA_VERSION,
+    RTL_BOUNDARY_SELECTOR_RESPONSE_SURFACE,
     RTL_BOUNDARY_SWEEP_ENUMERATION_SURFACE,
     RTL_BOUNDARY_SWEEP_SPACE_SURFACE,
     SweepBoundaryError,
@@ -37,6 +39,7 @@ from verilator_model_sidecar.boundary_report import (  # noqa: E402
     RTL_BOUNDARY_REPORT_BUNDLE_SURFACE,
     RTL_BOUNDARY_REPORT_VALIDATION_SURFACE,
 )
+from verilator_model_sidecar.cli import main as cli_main  # noqa: E402
 
 
 def _space(axes: list[dict]) -> dict:
@@ -154,6 +157,7 @@ class SweepBoundaryTest(unittest.TestCase):
         expected = {
             "rtl_boundary_sweep_space.schema.json": RTL_BOUNDARY_SWEEP_SPACE_SURFACE,
             "rtl_boundary_sweep_enumeration.schema.json": RTL_BOUNDARY_SWEEP_ENUMERATION_SURFACE,
+            "rtl_boundary_selector_response.schema.json": RTL_BOUNDARY_SELECTOR_RESPONSE_SURFACE,
             "rtl_boundary_ground_truth.schema.json": RTL_BOUNDARY_GROUND_TRUTH_SURFACE,
             "rtl_boundary_analysis.schema.json": RTL_BOUNDARY_ANALYSIS_SURFACE,
             "rtl_boundary_policy_trial.schema.json": RTL_BOUNDARY_POLICY_TRIAL_SURFACE,
@@ -254,6 +258,99 @@ class SweepBoundaryTest(unittest.TestCase):
             {by_id[point_id]["kind"] for point_id in stratified},
             {"valid", "malformed"},
         )
+
+    def test_selector_cli_exposes_the_public_selector_abi_only(self) -> None:
+        sweep_space = _space(
+            [
+                {"name": "delay", "kind": "ordered", "values": [0, 1, 2]},
+                {
+                    "name": "kind",
+                    "kind": "categorical",
+                    "values": ["valid", "malformed"],
+                    "adjacent_value_pairs": [["valid", "malformed"]],
+                },
+            ]
+        )
+        policy = _policy("stratified", {"strata_axes": ["kind"]})
+        with tempfile.TemporaryDirectory() as raw_directory:
+            directory = Path(raw_directory)
+            sweep_path = directory / "sweep.json"
+            policy_path = directory / "policy.json"
+            output_path = directory / "selected.json"
+            sweep_path.write_text(json.dumps(sweep_space), encoding="utf-8")
+            policy_path.write_text(json.dumps(policy), encoding="utf-8")
+
+            exit_code = cli_main(
+                [
+                    "select-boundary-points",
+                    "--sweep-space",
+                    sweep_path.as_posix(),
+                    "--policy",
+                    policy_path.as_posix(),
+                    "--requested-count",
+                    "2",
+                    "--output",
+                    output_path.as_posix(),
+                ]
+            )
+            self.assertEqual(exit_code, 0)
+            result = json.loads(output_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["surface"], RTL_BOUNDARY_SELECTOR_RESPONSE_SURFACE)
+        self.assertEqual(
+            tuple(result["selected_point_ids"]),
+            select_boundary_points(sweep_space, policy, [], 2),
+        )
+
+    def test_selector_cli_rejects_non_strict_json_inputs(self) -> None:
+        policy = _policy("random")
+        with tempfile.TemporaryDirectory() as raw_directory:
+            directory = Path(raw_directory)
+            sweep_path = directory / "sweep.json"
+            policy_path = directory / "policy.json"
+            output_path = directory / "selected.json"
+            sweep_path.write_text('{"schema_version": 1, "surface": NaN}', encoding="utf-8")
+            policy_path.write_text(json.dumps(policy), encoding="utf-8")
+            exit_code = cli_main(
+                [
+                    "select-boundary-points",
+                    "--sweep-space",
+                    sweep_path.as_posix(),
+                    "--policy",
+                    policy_path.as_posix(),
+                    "--requested-count",
+                    "1",
+                    "--output",
+                    output_path.as_posix(),
+                ]
+            )
+            self.assertEqual(exit_code, 2)
+            self.assertFalse(output_path.exists())
+
+            sweep_path.write_text(
+                json.dumps(
+                    _space([{"name": "delay", "kind": "ordered", "values": [0, 1]}])
+                ),
+                encoding="utf-8",
+            )
+            policy_path.write_text(
+                '{"kind": "random", "kind": "stratified"}',
+                encoding="utf-8",
+            )
+            exit_code = cli_main(
+                [
+                    "select-boundary-points",
+                    "--sweep-space",
+                    sweep_path.as_posix(),
+                    "--policy",
+                    policy_path.as_posix(),
+                    "--requested-count",
+                    "1",
+                    "--output",
+                    output_path.as_posix(),
+                ]
+            )
+            self.assertEqual(exit_code, 2)
+            self.assertFalse(output_path.exists())
 
     def test_ordered_refinement_replay_counts_gpu_batch_feedback_by_epoch(self) -> None:
         sweep_space = _space(

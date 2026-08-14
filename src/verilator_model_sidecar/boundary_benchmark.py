@@ -322,6 +322,75 @@ def _validate_trial_contracts(
     return trials
 
 
+def _validate_action_domain(
+    raw_action_domain: Any,
+    raw_digest: Any,
+    enumeration: Mapping[str, Any],
+) -> dict[str, Any]:
+    if not isinstance(raw_action_domain, list):
+        raise BoundaryBenchmarkError(
+            "action_domain_invalid", "action_domain must be a list"
+        )
+    expected_points = list(enumeration["points"])
+    if len(raw_action_domain) != len(expected_points):
+        raise BoundaryBenchmarkError(
+            "action_domain_incomplete",
+            "action_domain must contain exactly one row per sweep point",
+        )
+    actions: set[str] = set()
+    normalized: list[dict[str, Any]] = []
+    for index, expected_point in enumerate(expected_points):
+        raw_row = _require_object(
+            raw_action_domain[index],
+            "action_domain_row_invalid",
+            f"action_domain row {index}",
+        )
+        _reject_unknown(
+            raw_row,
+            {"point_id", "action", "parameters"},
+            "action_domain_unknown_field",
+            f"action_domain row {index}",
+        )
+        action = _nonempty_string(
+            raw_row.get("action"), "action_domain_action_invalid", f"action_domain row {index} action"
+        )
+        if action in actions:
+            raise BoundaryBenchmarkError(
+                "action_domain_action_duplicate",
+                f"action_domain action {action!r} is duplicated",
+            )
+        actions.add(action)
+        if raw_row.get("point_id") != expected_point["point_id"]:
+            raise BoundaryBenchmarkError(
+                "action_domain_point_mismatch",
+                f"action_domain row {index} point_id does not match sweep enumeration",
+            )
+        parameters = _require_object(
+            raw_row.get("parameters"),
+            "action_domain_parameters_invalid",
+            f"action_domain row {index} parameters",
+        )
+        if not _exact_equal(parameters, expected_point["parameters"]):
+            raise BoundaryBenchmarkError(
+                "action_domain_parameters_mismatch",
+                f"action_domain row {index} parameters do not match sweep enumeration",
+            )
+        normalized.append(
+            {
+                "point_id": expected_point["point_id"],
+                "action": action,
+                "parameters": dict(parameters),
+            }
+        )
+    digest = _sha256(normalized)
+    if raw_digest != digest:
+        raise BoundaryBenchmarkError(
+            "action_domain_hash_mismatch",
+            "action_domain_sha256 does not recompute",
+        )
+    return {"action_domain": normalized, "action_domain_sha256": digest}
+
+
 def _validate_comparisons(
     raw_comparisons: Any,
     trials: Mapping[str, Mapping[str, Any]],
@@ -451,6 +520,8 @@ def _validate_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
             "target",
             "sweep_space",
             "sweep_space_sha256",
+            "action_domain",
+            "action_domain_sha256",
             "reconstructor",
             "backends",
             "trials",
@@ -482,6 +553,11 @@ def _validate_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
         raise BoundaryBenchmarkError(
             "contract_sweep_hash_mismatch", "sweep_space_sha256 does not recompute"
         )
+    action_domain = _validate_action_domain(
+        contract.get("action_domain"),
+        contract.get("action_domain_sha256"),
+        enumeration,
+    )
     reconstructor = _require_object(
         contract.get("reconstructor"),
         "contract_reconstructor_invalid",
@@ -511,6 +587,8 @@ def _validate_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
         "sweep_space": dict(sweep_space),
         "sweep_space_sha256": enumeration["sweep_space_sha256"],
         "point_count": enumeration["point_count"],
+        "action_domain": action_domain["action_domain"],
+        "action_domain_sha256": action_domain["action_domain_sha256"],
         "reconstructor": dict(reconstructor),
         "backends": backends,
         "trials": trials,
@@ -1163,6 +1241,7 @@ def _pass_adjudication(
             "target": contract["target"],
             "sweep_space_sha256": contract["sweep_space_sha256"],
             "point_count": contract["point_count"],
+            "action_domain_sha256": contract["action_domain_sha256"],
             "reconstructor": contract["reconstructor"],
         },
         "ground_truth_analysis": ground_truth_analysis,
