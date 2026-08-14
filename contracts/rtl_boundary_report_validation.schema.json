@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_report_validation.schema.json",
+  "title": "Stored RTL boundary report validation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "surface", "status", "issues", "input_canonical_sha256"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "surface": {"type": "string", "const": "rtl_boundary_report_validation"},
+    "status": {"enum": ["pass", "fail"]},
+    "issues": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/issue"}
+    },
+    "input_canonical_sha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adjudication", "report_bundle"],
+      "properties": {
+        "adjudication": {"$ref": "#/$defs/sha256_or_null"},
+        "report_bundle": {"$ref": "#/$defs/sha256_or_null"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256_or_null": {
+      "oneOf": [
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        {"type": "null"}
+      ]
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "message": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

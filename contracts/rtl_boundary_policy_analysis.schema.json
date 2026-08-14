@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_analysis.schema.json",
+  "title": "RTL boundary selector policy analysis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "sweep_space_sha256",
+    "ground_truth_sha256",
+    "trial_sha256",
+    "policy",
+    "reconstructor",
+    "requested_count",
+    "budget_logical_bad_queries",
+    "epoch_count",
+    "logical_bad_queries",
+    "unique_bad_queries",
+    "duplicate_bad_queries",
+    "completion_status",
+    "first_violation",
+    "first_bracket",
+    "prediction_metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "surface": {
+      "type": "string",
+      "const": "rtl_boundary_policy_analysis"
+    },
+    "sweep_space_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "ground_truth_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "trial_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "policy": {
+      "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_trial.schema.json#/$defs/policy"
+    },
+    "reconstructor": {
+      "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_trial.schema.json#/$defs/reconstructor"
+    },
+    "requested_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "budget_logical_bad_queries": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "epoch_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "logical_bad_queries": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unique_bad_queries": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "duplicate_bad_queries": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "completion_status": {
+      "enum": ["budget_reached", "exhausted"]
+    },
+    "first_violation": {
+      "$ref": "#/$defs/milestone"
+    },
+    "first_bracket": {
+      "$ref": "#/$defs/milestone"
+    },
+    "prediction_metrics": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "milestone": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["reached", "not_reached", "not_applicable"]
+        }
+      }
+    }
+  }
+}

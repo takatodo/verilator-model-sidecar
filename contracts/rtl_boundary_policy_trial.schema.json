@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_policy_trial.schema.json",
+  "title": "RTL boundary selector policy trial",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "sweep_space_sha256",
+    "policy",
+    "reconstructor",
+    "requested_count",
+    "budget_logical_bad_queries",
+    "epochs"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "surface": {
+      "type": "string",
+      "const": "rtl_boundary_policy_trial"
+    },
+    "sweep_space_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "policy": {
+      "$ref": "#/$defs/policy"
+    },
+    "reconstructor": {
+      "$ref": "#/$defs/reconstructor"
+    },
+    "requested_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "budget_logical_bad_queries": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "epochs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/epoch"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "point_id": {
+      "type": "string",
+      "pattern": "^point:v1:[0-9a-f]{64}$"
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "algorithm_version",
+        "seed_sha256",
+        "configuration"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "random",
+            "stratified",
+            "ordered_refinement",
+            "novelty_boundary_guided"
+          ]
+        },
+        "algorithm_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "seed_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "configuration": {
+          "type": "object"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {"const": "random"},
+            "configuration": {"$ref": "#/$defs/empty_configuration"}
+          }
+        },
+        {
+          "properties": {
+            "kind": {"const": "stratified"},
+            "configuration": {"$ref": "#/$defs/stratified_configuration"}
+          }
+        },
+        {
+          "properties": {
+            "kind": {"const": "ordered_refinement"},
+            "configuration": {"$ref": "#/$defs/refinement_configuration"}
+          }
+        },
+        {
+          "properties": {
+            "kind": {"const": "novelty_boundary_guided"},
+            "configuration": {"$ref": "#/$defs/empty_configuration"}
+          }
+        }
+      ]
+    },
+    "empty_configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "maxProperties": 0
+    },
+    "stratified_configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strata_axes"],
+      "properties": {
+        "strata_axes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "refinement_configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["axis"],
+      "properties": {
+        "axis": {"type": "string", "minLength": 1}
+      }
+    },
+    "reconstructor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "algorithm_version"],
+      "properties": {
+        "kind": {"type": "string", "const": "nearest_observed_graph"},
+        "algorithm_version": {"type": "integer", "const": 1}
+      }
+    },
+    "epoch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "epoch_index",
+        "selected_point_ids",
+        "bad_observations"
+      ],
+      "properties": {
+        "epoch_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "selected_point_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/point_id"
+          }
+        },
+        "bad_observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/observation"
+          }
+        },
+        "total_prediction_after_feedback": {
+          "$ref": "#/$defs/prediction"
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "point_id",
+        "bad_oracle"
+      ],
+      "properties": {
+        "point_id": {
+          "$ref": "#/$defs/point_id"
+        },
+        "bad_oracle": {
+          "type": "integer",
+          "enum": [0, 1]
+        },
+        "coverage_feature_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "prediction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pass_point_ids",
+        "fail_point_ids"
+      ],
+      "properties": {
+        "pass_point_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/point_id"
+          }
+        },
+        "fail_point_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/point_id"
+          }
+        }
+      }
+    }
+  }
+}

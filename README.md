@@ -108,6 +108,22 @@ identities. Oracle-violation seeds are checked for single-action-deletion
 1-minimality rather than accepted from a `minimal` flag alone. See
 [OpenTitan external evidence adjudication](docs/opentitan-external-evidence-adjudication.md).
 
+Known-regression parameter spaces can be modeled independently with the pure
+[RTL boundary model](docs/rtl-boundary-model.md). It canonicalizes finite
+ordered/categorical axes, gives external runners deterministic point IDs, and
+recomputes bad/fixed boundary edges, failure regions, and applicable minimal
+failing points from complete raw observations without invoking a DUT or backend.
+It also provides deterministic selector replay for random, stratified,
+ordered-refinement, and novelty/boundary-guided policy trials, separating
+selector efficiency from CPU/GPU execution throughput.
+
+Externally executed finite-grid campaigns can be admitted through the
+[RTL boundary benchmark adjudicator](docs/rtl-boundary-benchmark.md). It checks
+CPU/GPU semantic equality, bad-to-fixed disappearance, selector replay,
+state-eval and launch accounting, and CPU/GPU backend trace identity, then
+generates hash-bound JSON, SVG, and Markdown representations without invoking a
+DUT.
+
 ## Requirements
 
 - Python 3.10 or newer

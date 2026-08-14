@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_sweep_space.schema.json",
+  "title": "Finite RTL boundary sweep space",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "axes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "surface": {
+      "type": "string",
+      "const": "rtl_boundary_sweep_space"
+    },
+    "axes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/axis"
+      }
+    }
+  },
+  "$defs": {
+    "scalar": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "integer"},
+        {"type": "boolean"}
+      ]
+    },
+    "value_pair": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {"$ref": "#/$defs/scalar"},
+        {"$ref": "#/$defs/scalar"}
+      ]
+    },
+    "axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind",
+        "values"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": ["ordered", "categorical"]
+        },
+        "values": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/scalar"
+          }
+        },
+        "adjacent_value_pairs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/value_pair"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {"const": "categorical"}
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["adjacent_value_pairs"]
+          },
+          "else": {
+            "not": {
+              "required": ["adjacent_value_pairs"]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

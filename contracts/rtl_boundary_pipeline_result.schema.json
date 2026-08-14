@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_pipeline_result.schema.json",
+  "title": "Static RTL boundary benchmark CLI pipeline result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "status",
+    "adjudication",
+    "report_bundle",
+    "graph_artifact",
+    "markdown_artifact"
+  ],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "surface": {"type": "string", "const": "rtl_boundary_pipeline_result"},
+    "status": {"enum": ["pass", "fail"]},
+    "adjudication": {
+      "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_adjudication.schema.json"
+    },
+    "report_bundle": {
+      "oneOf": [
+        {
+          "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_report_bundle.schema.json"
+        },
+        {"type": "null"}
+      ]
+    },
+    "graph_artifact": {
+      "oneOf": [
+        {"$ref": "#/$defs/artifact"},
+        {"type": "null"}
+      ]
+    },
+    "markdown_artifact": {
+      "oneOf": [
+        {"$ref": "#/$defs/artifact"},
+        {"type": "null"}
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "pass"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "report_bundle": {
+            "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_report_bundle.schema.json"
+          },
+          "graph_artifact": {"$ref": "#/$defs/artifact"},
+          "markdown_artifact": {"$ref": "#/$defs/artifact"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "fail"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "report_bundle": {"type": "null"},
+          "graph_artifact": {"type": "null"},
+          "markdown_artifact": {"type": "null"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

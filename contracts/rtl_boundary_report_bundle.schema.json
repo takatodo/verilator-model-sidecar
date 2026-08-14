@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_report_bundle.schema.json",
+  "title": "Deterministic RTL boundary graph and Markdown report bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "source_adjudication_sha256",
+    "plot_payload",
+    "plot_payload_sha256",
+    "graph_svg",
+    "graph_sha256",
+    "markdown_report",
+    "markdown_sha256"
+  ],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "surface": {"type": "string", "const": "rtl_boundary_report_bundle"},
+    "source_adjudication_sha256": {"$ref": "#/$defs/sha256"},
+    "plot_payload": {
+      "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_plot_payload.schema.json"
+    },
+    "plot_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "graph_svg": {"type": "string", "minLength": 1},
+    "graph_sha256": {"$ref": "#/$defs/sha256"},
+    "markdown_report": {"type": "string", "minLength": 1},
+    "markdown_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

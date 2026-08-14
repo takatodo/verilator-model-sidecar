@@ -52,6 +52,16 @@ from .semantic import (
     validate_manifest,
     write_manifest,
 )
+from .boundary_benchmark import (
+    RTL_BOUNDARY_ADJUDICATION_SURFACE,
+    RTL_BOUNDARY_BENCHMARK_SCHEMA_VERSION,
+    BoundaryBenchmarkError,
+    adjudicate_boundary_benchmark,
+)
+from .boundary_report import (
+    RTL_BOUNDARY_PIPELINE_RESULT_SURFACE,
+    build_boundary_report_bundle,
+)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -245,6 +255,16 @@ def _parser() -> argparse.ArgumentParser:
     opentitan_summary_output.add_argument("--summary", type=Path, required=True)
     opentitan_summary_output.add_argument("--output", type=Path, required=True)
     opentitan_summary_output.add_argument("--report", type=Path, required=True)
+
+    boundary_benchmark = subparsers.add_parser(
+        "adjudicate-boundary-benchmark",
+        help="adjudicate existing finite-grid RTL boundary evidence without running a DUT",
+    )
+    boundary_benchmark.add_argument(
+        "--experiment-contract", type=Path, required=True
+    )
+    boundary_benchmark.add_argument("--evidence", type=Path, required=True)
+    boundary_benchmark.add_argument("--output", type=Path, required=True)
 
     validate = subparsers.add_parser(
         "validate", help="validate a generated model manifest"
@@ -688,6 +708,89 @@ def _validate_opentitan_adjudication_summary_output(arguments: argparse.Namespac
     return 0 if report["status"] == "pass" else 1
 
 
+def _boundary_input_failure(message: str) -> dict[str, object]:
+    return {
+        "schema_version": RTL_BOUNDARY_BENCHMARK_SCHEMA_VERSION,
+        "surface": RTL_BOUNDARY_ADJUDICATION_SURFACE,
+        "status": "fail",
+        "issues": [{"code": "input_read_error", "message": message}],
+        "input_canonical_sha256": {
+            "experiment_contract": None,
+            "evidence_bundle": None,
+        },
+    }
+
+
+def _adjudicate_boundary_benchmark(arguments: argparse.Namespace) -> int:
+    input_file_sha256: dict[str, str | None] = {
+        "experiment_contract": None,
+        "evidence_bundle": None,
+    }
+    for name, path in (
+        ("experiment_contract", arguments.experiment_contract),
+        ("evidence_bundle", arguments.evidence),
+    ):
+        try:
+            input_file_sha256[name] = file_sha256(path)
+        except OSError:
+            pass
+    try:
+        contract = read_strict_json_object(arguments.experiment_contract)
+        evidence = read_strict_json_object(arguments.evidence)
+        adjudication = adjudicate_boundary_benchmark(contract, evidence)
+    except (OSError, OpenTitanEvidenceError) as error:
+        adjudication = _boundary_input_failure(str(error))
+    adjudication["input_file_sha256"] = input_file_sha256
+
+    report_bundle = None
+    graph_artifact = None
+    markdown_artifact = None
+    if adjudication["status"] == "pass":
+        try:
+            report_bundle = build_boundary_report_bundle(adjudication)
+            graph_name = (
+                f"{arguments.output.stem}-{report_bundle['graph_sha256']}.svg"
+            )
+            markdown_name = (
+                f"{arguments.output.stem}-{report_bundle['markdown_sha256']}.md"
+            )
+            graph_path = arguments.output.parent / graph_name
+            markdown_path = arguments.output.parent / markdown_name
+            write_text_atomic(graph_path, report_bundle["graph_svg"])
+            write_text_atomic(markdown_path, report_bundle["markdown_report"])
+            graph_artifact = {
+                "path": graph_name,
+                "sha256": report_bundle["graph_sha256"],
+            }
+            markdown_artifact = {
+                "path": markdown_name,
+                "sha256": report_bundle["markdown_sha256"],
+            }
+        except (OSError, BoundaryBenchmarkError) as error:
+            adjudication = _boundary_input_failure(
+                f"report generation failed: {error}"
+            )
+            adjudication["input_file_sha256"] = input_file_sha256
+            report_bundle = None
+            graph_artifact = None
+            markdown_artifact = None
+    pipeline = {
+        "schema_version": RTL_BOUNDARY_BENCHMARK_SCHEMA_VERSION,
+        "surface": RTL_BOUNDARY_PIPELINE_RESULT_SURFACE,
+        "status": adjudication["status"],
+        "adjudication": adjudication,
+        "report_bundle": report_bundle,
+        "graph_artifact": graph_artifact,
+        "markdown_artifact": markdown_artifact,
+    }
+    write_json_atomic(arguments.output, pipeline)
+    print(
+        f"wrote {arguments.output}: status={pipeline['status']}, "
+        f"issues={len(adjudication['issues'])}"
+    )
+    return 0 if pipeline["status"] == "pass" else 1
+
+
 def _analyze(arguments: argparse.Namespace) -> int:
     adapter = (
         _read_object(arguments.adapter, "adapter")
@@ -807,6 +910,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _validate_opentitan_adjudication_output(arguments)
         if arguments.command == "validate-opentitan-adjudication-summary":
             return _validate_opentitan_adjudication_summary_output(arguments)
+        if arguments.command == "adjudicate-boundary-benchmark":
+            return _adjudicate_boundary_benchmark(arguments)
         if arguments.command == "validate":
             return _validate(arguments)
     except (

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verilator-model-sidecar/rtl_boundary_ground_truth.schema.json",
+  "title": "Complete paired bad/fixed RTL boundary ground truth",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "sweep_space_sha256",
+    "observations"
+  ],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "surface": {"type": "string", "const": "rtl_boundary_ground_truth"},
+    "sweep_space_sha256": {"$ref": "#/$defs/sha256"},
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/observation"}
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "point_id": {
+      "type": "string",
+      "pattern": "^point:v1:[0-9a-f]{64}$"
+    },
+    "parameters": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "https://example.invalid/verilator-model-sidecar/rtl_boundary_sweep_space.schema.json#/$defs/scalar"
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "point_id",
+        "parameters",
+        "bad_oracle",
+        "fixed_oracle"
+      ],
+      "properties": {
+        "point_id": {"$ref": "#/$defs/point_id"},
+        "parameters": {"$ref": "#/$defs/parameters"},
+        "bad_oracle": {"type": "integer", "enum": [0, 1]},
+        "fixed_oracle": {"type": "integer", "enum": [0, 1]}
+      }
+    }
+  }
+}
