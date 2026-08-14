@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from jsonschema import Draft202012Validator, RefResolver
+
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, (ROOT / "src").as_posix())
@@ -39,6 +41,18 @@ from verilator_model_sidecar.boundary_report import (  # noqa: E402
     RTL_BOUNDARY_REPORT_BUNDLE_SURFACE,
     RTL_BOUNDARY_REPORT_VALIDATION_SURFACE,
 )
+
+
+def _boundary_schema_validator(filename: str) -> Draft202012Validator:
+    schemas = {
+        path.name: json.loads(path.read_text(encoding="utf-8"))
+        for path in (ROOT / "contracts").glob("rtl_boundary_*.schema.json")
+    }
+    store = {schema["$id"]: schema for schema in schemas.values()}
+    schema = schemas[filename]
+    return Draft202012Validator(
+        schema, resolver=RefResolver.from_schema(schema, store=store)
+    )
 from verilator_model_sidecar.cli import main as cli_main  # noqa: E402
 
 
@@ -203,6 +217,27 @@ class SweepBoundaryTest(unittest.TestCase):
             self.assertFalse(
                 trial_schema["$defs"][definition]["additionalProperties"]
             )
+        analysis_schema = json.loads(
+            (
+                ROOT / "contracts" / "rtl_boundary_policy_analysis.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            analysis_schema["$defs"]["prediction_metrics"]["required"],
+            ["first_exact_boundary", "epochs"],
+        )
+        self.assertEqual(
+            set(analysis_schema["$defs"]["epoch_prediction_metrics"]["required"]),
+            {
+                "epoch_index",
+                "status",
+                "boundary_precision",
+                "boundary_recall",
+                "boundary_hausdorff",
+                "failure_region_iou",
+                "minimal_failing_point_recovery",
+            },
+        )
 
     def test_selector_policies_are_deterministic_and_public_feedback_only(self) -> None:
         sweep_space = _space(
@@ -391,6 +426,9 @@ class SweepBoundaryTest(unittest.TestCase):
             ],
         }
         analysis = analyze_boundary_policy_trial(sweep_space, ground_truth, trial)
+        _boundary_schema_validator(
+            "rtl_boundary_policy_analysis.schema.json"
+        ).validate(analysis)
         self.assertEqual(analysis["surface"], RTL_BOUNDARY_POLICY_ANALYSIS_SURFACE)
         self.assertEqual(
             analysis["first_violation"],

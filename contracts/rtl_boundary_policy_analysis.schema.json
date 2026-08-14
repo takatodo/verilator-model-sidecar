@@ -81,7 +81,7 @@
       "$ref": "#/$defs/milestone"
     },
     "prediction_metrics": {
-      "type": "object"
+      "$ref": "#/$defs/prediction_metrics"
     }
   },
   "$defs": {
@@ -91,11 +91,71 @@
     },
     "milestone": {
       "type": "object",
-      "additionalProperties": true,
       "required": ["status"],
       "properties": {
         "status": {
           "enum": ["reached", "not_reached", "not_applicable"]
+        },
+        "reason": {"type": "string", "minLength": 1},
+        "epoch_index": {"type": "integer", "minimum": 0},
+        "logical_bad_queries": {"type": "integer", "minimum": 0},
+        "axis": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "ratio": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["computed", "not_applicable"]},
+        "reason": {"type": "string", "minLength": 1},
+        "numerator": {"type": "integer", "minimum": 0},
+        "denominator": {"type": "integer", "minimum": 0},
+        "value": {"type": "number"}
+      },
+      "additionalProperties": false
+    },
+    "distance": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["computed", "not_applicable", "unbounded"]},
+        "reason": {"type": "string", "minLength": 1},
+        "ordinal_distance": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "epoch_prediction_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "epoch_index",
+        "status",
+        "boundary_precision",
+        "boundary_recall",
+        "boundary_hausdorff",
+        "failure_region_iou",
+        "minimal_failing_point_recovery"
+      ],
+      "properties": {
+        "epoch_index": {"type": "integer", "minimum": 0},
+        "status": {"const": "computed"},
+        "boundary_precision": {"$ref": "#/$defs/ratio"},
+        "boundary_recall": {"$ref": "#/$defs/ratio"},
+        "boundary_hausdorff": {"$ref": "#/$defs/distance"},
+        "failure_region_iou": {"$ref": "#/$defs/ratio"},
+        "minimal_failing_point_recovery": {"$ref": "#/$defs/ratio"}
+      }
+    },
+    "prediction_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["first_exact_boundary", "epochs"],
+      "properties": {
+        "first_exact_boundary": {"$ref": "#/$defs/milestone"},
+        "epochs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/epoch_prediction_metrics"}
         }
       }
     }
