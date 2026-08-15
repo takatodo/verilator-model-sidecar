@@ -1,0 +1,325 @@
+{
+  "graph_sha256": "9c26b2af953825d3a1e3b876b029deef224493402814d1774dca08fc96574bd2",
+  "graph_svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1120\" height=\"270\" viewBox=\"0 0 1120 270\">\n<metadata id=\"rtl-boundary-plot-payload-sha256\">68e0f3f58ddd9b906d791f50ba5fb005896130e3061a2e0dd23a74fa3e197cf1</metadata>\n<rect width=\"100%\" height=\"100%\" fill=\"#ffffff\"/>\n<text x=\"24\" y=\"30\" font-family=\"sans-serif\" font-size=\"20\" font-weight=\"bold\">RTL boundary selector comparison</text>\n<text x=\"24\" y=\"52\" font-family=\"monospace\" font-size=\"11\">source 98635b24bbe02810bab55ecf8d9044b6c09980d9e989ae37edacaed25001acf2</text>\n<text x=\"300\" y=\"82\" font-family=\"sans-serif\" font-size=\"13\">logical bad queries</text>\n<text x=\"690\" y=\"82\" font-family=\"sans-serif\" font-size=\"13\">wall time (ns)</text>\n<text x=\"24\" y=\"118\" font-family=\"sans-serif\" font-size=\"12\">random / random_gpu</text>\n<rect x=\"300\" y=\"104\" width=\"300.000\" height=\"18\" fill=\"#2563eb\"/>\n<text x=\"606.000\" y=\"118\" font-family=\"monospace\" font-size=\"11\">2</text>\n<rect x=\"690\" y=\"104\" width=\"73.805\" height=\"18\" fill=\"#059669\"/>\n<text x=\"769.805\" y=\"118\" font-family=\"monospace\" font-size=\"11\">668058921</text>\n<text x=\"24\" y=\"156\" font-family=\"sans-serif\" font-size=\"12\">stratified / stratified_gpu</text>\n<rect x=\"300\" y=\"142\" width=\"300.000\" height=\"18\" fill=\"#2563eb\"/>\n<text x=\"606.000\" y=\"156\" font-family=\"monospace\" font-size=\"11\">2</text>\n<rect x=\"690\" y=\"142\" width=\"128.766\" height=\"18\" fill=\"#059669\"/>\n<text x=\"824.766\" y=\"156\" font-family=\"monospace\" font-size=\"11\">1165542289</text>\n<text x=\"24\" y=\"194\" font-family=\"sans-serif\" font-size=\"12\">ordered_refinement / ordered_refinement_gpu</text>\n<rect x=\"300\" y=\"180\" width=\"300.000\" height=\"18\" fill=\"#2563eb\"/>\n<text x=\"606.000\" y=\"194\" font-family=\"monospace\" font-size=\"11\">2</text>\n<rect x=\"690\" y=\"180\" width=\"173.245\" height=\"18\" fill=\"#059669\"/>\n<text x=\"869.245\" y=\"194\" font-family=\"monospace\" font-size=\"11\">1568152917</text>\n<text x=\"24\" y=\"232\" font-family=\"sans-serif\" font-size=\"12\">novelty_boundary_guided / novelty_gpu</text>\n<rect x=\"300\" y=\"218\" width=\"300.000\" height=\"18\" fill=\"#2563eb\"/>\n<text x=\"606.000\" y=\"232\" font-family=\"monospace\" font-size=\"11\">2</text>\n<rect x=\"690\" y=\"218\" width=\"300.000\" height=\"18\" fill=\"#059669\"/>\n<text x=\"996.000\" y=\"232\" font-family=\"monospace\" font-size=\"11\">2715498515</text>\n</svg>\n",
+  "markdown_report": "# RTL boundary benchmark: ibex2188-boundary-v1\n\n- Target: `ibex2188`\n- Sweep points: `4`\n- Sweep-space SHA-256: `781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22`\n- Action-domain SHA-256: `b048b443ecacb4a175926c14eea634837930413710202af2636f79342ffce6f8`\n- Source adjudication SHA-256: `98635b24bbe02810bab55ecf8d9044b6c09980d9e989ae37edacaed25001acf2`\n- Plot payload SHA-256: `68e0f3f58ddd9b906d791f50ba5fb005896130e3061a2e0dd23a74fa3e197cf1`\n\n## Selector comparison on one GPU executor\n\n| Trial | Policy | State evals | Launches | Wall ns | First violation | First bracket | Exact boundary | Edge P | Edge R | Hausdorff | Failure IoU | Minimal recovery |\n|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n| random_gpu | random | 2 | 1 | 668058921 | \u2014 | \u2014 | \u2014 | not_applicable | 0/2 | unbounded | 0/1 | 0/1 |\n| stratified_gpu | stratified | 2 | 1 | 1165542289 | \u2014 | \u2014 | \u2014 | not_applicable | 0/2 | unbounded | 0/1 | 0/1 |\n| ordered_refinement_gpu | ordered_refinement | 2 | 1 | 1568152917 | \u2014 | \u2014 | \u2014 | not_applicable | 0/2 | unbounded | 0/1 | 0/1 |\n| novelty_gpu | novelty_boundary_guided | 3 | 2 | 2715498515 | 2 | \u2014 | 2 | 2/2 | 2/2 | 0 | 1/1 | 1/1 |\n\n## Same selector across CPU and GPU backends\n\n| Trial | Backend | Resident width | State evals | Cycle evals | Launches | Wall ns |\n|---|---|---:|---:|---:|---:|---:|\n| random_cpu | cpu | 1 | 2 | 46 | 2 | 2752759904 |\n| random_gpu | gpu | 2 | 2 | 46 | 1 | 668058921 |\n\n## Claim boundary\n\nThe selector table compares sampling policies on one declared GPU executor. The backend table compares an identical replayed selector trace across CPU and GPU adapters. Coverage or boundary gain identifies an interesting prefix; only the declared oracle determines failure. This report does not claim unknown-bug discovery, PPO/RL superiority, or that GPU execution improves the sampling algorithm itself.\n",
+  "markdown_sha256": "9bdf786e771e689898445a154abdf4a29cb0ee0a9d17fe018a9b6e8a5067b286",
+  "plot_payload": {
+    "action_domain_sha256": "b048b443ecacb4a175926c14eea634837930413710202af2636f79342ffce6f8",
+    "backend_rows": [
+      {
+        "accounting": {
+          "bad_search_state_evals": 2,
+          "batch_launches": 2,
+          "cycle_evals": 46,
+          "duplicate_state_evals": 0,
+          "fixed_confirmation_state_evals": 0,
+          "scheduled_state_evals": 2,
+          "unique_state_evals": 2,
+          "wall_time_ns": 2752759904
+        },
+        "backend_id": "cpu",
+        "backend_kind": "cpu",
+        "boundary_hausdorff": {
+          "status": "unbounded"
+        },
+        "boundary_precision": {
+          "denominator": 0,
+          "numerator": 0,
+          "reason": "no_predicted_boundary",
+          "status": "not_applicable"
+        },
+        "boundary_recall": {
+          "denominator": 2,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "comparison_id": "random-backend",
+        "comparison_kind": "backend",
+        "failure_region_iou": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "first_bracket_logical_bad_queries": null,
+        "first_exact_boundary_logical_bad_queries": null,
+        "first_violation_logical_bad_queries": null,
+        "logical_bad_queries": 2,
+        "minimal_failing_point_recovery": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "policy_kind": "random",
+        "resident_width": 1,
+        "trial_id": "random_cpu"
+      },
+      {
+        "accounting": {
+          "bad_search_state_evals": 2,
+          "batch_launches": 1,
+          "cycle_evals": 46,
+          "duplicate_state_evals": 0,
+          "fixed_confirmation_state_evals": 0,
+          "scheduled_state_evals": 2,
+          "unique_state_evals": 2,
+          "wall_time_ns": 668058921
+        },
+        "backend_id": "gpu",
+        "backend_kind": "gpu",
+        "boundary_hausdorff": {
+          "status": "unbounded"
+        },
+        "boundary_precision": {
+          "denominator": 0,
+          "numerator": 0,
+          "reason": "no_predicted_boundary",
+          "status": "not_applicable"
+        },
+        "boundary_recall": {
+          "denominator": 2,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "comparison_id": "random-backend",
+        "comparison_kind": "backend",
+        "failure_region_iou": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "first_bracket_logical_bad_queries": null,
+        "first_exact_boundary_logical_bad_queries": null,
+        "first_violation_logical_bad_queries": null,
+        "logical_bad_queries": 2,
+        "minimal_failing_point_recovery": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "policy_kind": "random",
+        "resident_width": 2,
+        "trial_id": "random_gpu"
+      }
+    ],
+    "experiment_id": "ibex2188-boundary-v1",
+    "point_count": 4,
+    "schema_version": 1,
+    "selector_rows": [
+      {
+        "accounting": {
+          "bad_search_state_evals": 2,
+          "batch_launches": 1,
+          "cycle_evals": 46,
+          "duplicate_state_evals": 0,
+          "fixed_confirmation_state_evals": 0,
+          "scheduled_state_evals": 2,
+          "unique_state_evals": 2,
+          "wall_time_ns": 668058921
+        },
+        "backend_id": "gpu",
+        "backend_kind": "gpu",
+        "boundary_hausdorff": {
+          "status": "unbounded"
+        },
+        "boundary_precision": {
+          "denominator": 0,
+          "numerator": 0,
+          "reason": "no_predicted_boundary",
+          "status": "not_applicable"
+        },
+        "boundary_recall": {
+          "denominator": 2,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "comparison_id": "selector-on-gpu",
+        "comparison_kind": "selector",
+        "failure_region_iou": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "first_bracket_logical_bad_queries": null,
+        "first_exact_boundary_logical_bad_queries": null,
+        "first_violation_logical_bad_queries": null,
+        "logical_bad_queries": 2,
+        "minimal_failing_point_recovery": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "policy_kind": "random",
+        "resident_width": 2,
+        "trial_id": "random_gpu"
+      },
+      {
+        "accounting": {
+          "bad_search_state_evals": 2,
+          "batch_launches": 1,
+          "cycle_evals": 46,
+          "duplicate_state_evals": 0,
+          "fixed_confirmation_state_evals": 0,
+          "scheduled_state_evals": 2,
+          "unique_state_evals": 2,
+          "wall_time_ns": 1165542289
+        },
+        "backend_id": "gpu",
+        "backend_kind": "gpu",
+        "boundary_hausdorff": {
+          "status": "unbounded"
+        },
+        "boundary_precision": {
+          "denominator": 0,
+          "numerator": 0,
+          "reason": "no_predicted_boundary",
+          "status": "not_applicable"
+        },
+        "boundary_recall": {
+          "denominator": 2,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "comparison_id": "selector-on-gpu",
+        "comparison_kind": "selector",
+        "failure_region_iou": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "first_bracket_logical_bad_queries": null,
+        "first_exact_boundary_logical_bad_queries": null,
+        "first_violation_logical_bad_queries": null,
+        "logical_bad_queries": 2,
+        "minimal_failing_point_recovery": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "policy_kind": "stratified",
+        "resident_width": 2,
+        "trial_id": "stratified_gpu"
+      },
+      {
+        "accounting": {
+          "bad_search_state_evals": 2,
+          "batch_launches": 1,
+          "cycle_evals": 46,
+          "duplicate_state_evals": 0,
+          "fixed_confirmation_state_evals": 0,
+          "scheduled_state_evals": 2,
+          "unique_state_evals": 2,
+          "wall_time_ns": 1568152917
+        },
+        "backend_id": "gpu",
+        "backend_kind": "gpu",
+        "boundary_hausdorff": {
+          "status": "unbounded"
+        },
+        "boundary_precision": {
+          "denominator": 0,
+          "numerator": 0,
+          "reason": "no_predicted_boundary",
+          "status": "not_applicable"
+        },
+        "boundary_recall": {
+          "denominator": 2,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "comparison_id": "selector-on-gpu",
+        "comparison_kind": "selector",
+        "failure_region_iou": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "first_bracket_logical_bad_queries": null,
+        "first_exact_boundary_logical_bad_queries": null,
+        "first_violation_logical_bad_queries": null,
+        "logical_bad_queries": 2,
+        "minimal_failing_point_recovery": {
+          "denominator": 1,
+          "numerator": 0,
+          "status": "computed",
+          "value": 0.0
+        },
+        "policy_kind": "ordered_refinement",
+        "resident_width": 2,
+        "trial_id": "ordered_refinement_gpu"
+      },
+      {
+        "accounting": {
+          "bad_search_state_evals": 2,
+          "batch_launches": 2,
+          "cycle_evals": 69,
+          "duplicate_state_evals": 0,
+          "fixed_confirmation_state_evals": 1,
+          "scheduled_state_evals": 3,
+          "unique_state_evals": 3,
+          "wall_time_ns": 2715498515
+        },
+        "backend_id": "gpu",
+        "backend_kind": "gpu",
+        "boundary_hausdorff": {
+          "ordinal_distance": 0,
+          "status": "computed"
+        },
+        "boundary_precision": {
+          "denominator": 2,
+          "numerator": 2,
+          "status": "computed",
+          "value": 1.0
+        },
+        "boundary_recall": {
+          "denominator": 2,
+          "numerator": 2,
+          "status": "computed",
+          "value": 1.0
+        },
+        "comparison_id": "selector-on-gpu",
+        "comparison_kind": "selector",
+        "failure_region_iou": {
+          "denominator": 1,
+          "numerator": 1,
+          "status": "computed",
+          "value": 1.0
+        },
+        "first_bracket_logical_bad_queries": null,
+        "first_exact_boundary_logical_bad_queries": 2,
+        "first_violation_logical_bad_queries": 2,
+        "logical_bad_queries": 2,
+        "minimal_failing_point_recovery": {
+          "denominator": 1,
+          "numerator": 1,
+          "status": "computed",
+          "value": 1.0
+        },
+        "policy_kind": "novelty_boundary_guided",
+        "resident_width": 2,
+        "trial_id": "novelty_gpu"
+      }
+    ],
+    "source_adjudication_sha256": "98635b24bbe02810bab55ecf8d9044b6c09980d9e989ae37edacaed25001acf2",
+    "surface": "rtl_boundary_plot_payload",
+    "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22",
+    "target_id": "ibex2188"
+  },
+  "plot_payload_sha256": "68e0f3f58ddd9b906d791f50ba5fb005896130e3061a2e0dd23a74fa3e197cf1",
+  "schema_version": 1,
+  "source_adjudication_sha256": "98635b24bbe02810bab55ecf8d9044b6c09980d9e989ae37edacaed25001acf2",
+  "surface": "rtl_boundary_report_bundle"
+}

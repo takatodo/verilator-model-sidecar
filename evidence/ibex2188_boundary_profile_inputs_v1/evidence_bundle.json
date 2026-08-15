@@ -1,0 +1,778 @@
+{
+  "experiment_contract_sha256": "0be5efbec7f7948a45e2fe737bef5d689cf14b57bd0a42676590c7f84327bff3",
+  "ground_truth": {
+    "observations": [
+      {
+        "bad_oracle": 0,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "disabled",
+          "load_response_delay_cycles": 0
+        },
+        "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+      },
+      {
+        "bad_oracle": 0,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "disabled",
+          "load_response_delay_cycles": 1
+        },
+        "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+      },
+      {
+        "bad_oracle": 0,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "guarded_bit0",
+          "load_response_delay_cycles": 0
+        },
+        "point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+      },
+      {
+        "bad_oracle": 1,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "guarded_bit0",
+          "load_response_delay_cycles": 1
+        },
+        "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+      }
+    ],
+    "schema_version": 1,
+    "surface": "rtl_boundary_ground_truth",
+    "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+  },
+  "runner": {
+    "completed_at": "2026-08-15T14:55:58Z",
+    "identity": "ibex2188-gpu-runner:v1",
+    "status": "pass"
+  },
+  "schema_version": 1,
+  "semantic_manifests": {
+    "bad": {
+      "checkpoint_identity": "directed_load_dependent_branch_one_cycle_response_v1",
+      "observables": [
+        {
+          "name": "rf_read_enable",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_read_enable",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_wb_match",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_wb_match",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_write_wb",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_write_wb",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_ecc_error_id",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_ecc_error_id",
+          "width_bits": 1
+        },
+        {
+          "name": "instruction_valid_id",
+          "semantic_id": "ibex2188_ecc_temporal_tb.instruction_valid_id",
+          "width_bits": 1
+        },
+        {
+          "name": "alert_major_internal",
+          "semantic_id": "ibex2188_ecc_temporal_tb.alert_major_internal",
+          "width_bits": 1
+        },
+        {
+          "name": "oracle_violation",
+          "semantic_id": "ibex2188_ecc_temporal_tb.oracle_violation",
+          "width_bits": 1
+        }
+      ],
+      "oracle_identity": "ibex2188.ecc_read_error_requires_major_alert_when_no_wb_forwarding.v1",
+      "revision_label": "bad",
+      "revision_sha": "668233699df9ec2a40413e69e0de0a5b10185980",
+      "schema_version": 1,
+      "surface": "rtl_boundary_semantic_manifest",
+      "target_id": "ibex2188"
+    },
+    "fixed": {
+      "checkpoint_identity": "directed_load_dependent_branch_one_cycle_response_v1",
+      "observables": [
+        {
+          "name": "rf_read_enable",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_read_enable",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_wb_match",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_wb_match",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_write_wb",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_write_wb",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_ecc_error_id",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_ecc_error_id",
+          "width_bits": 1
+        },
+        {
+          "name": "instruction_valid_id",
+          "semantic_id": "ibex2188_ecc_temporal_tb.instruction_valid_id",
+          "width_bits": 1
+        },
+        {
+          "name": "alert_major_internal",
+          "semantic_id": "ibex2188_ecc_temporal_tb.alert_major_internal",
+          "width_bits": 1
+        },
+        {
+          "name": "oracle_violation",
+          "semantic_id": "ibex2188_ecc_temporal_tb.oracle_violation",
+          "width_bits": 1
+        }
+      ],
+      "oracle_identity": "ibex2188.ecc_read_error_requires_major_alert_when_no_wb_forwarding.v1",
+      "revision_label": "fixed",
+      "revision_sha": "9e4a950aa6aa0e20eb638aeeb78743d4a9ddaaeb",
+      "schema_version": 1,
+      "surface": "rtl_boundary_semantic_manifest",
+      "target_id": "ibex2188"
+    }
+  },
+  "semantic_observations": [
+    {
+      "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+      "revisions": {
+        "bad": {
+          "cpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          }
+        },
+        "fixed": {
+          "cpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          }
+        }
+      }
+    },
+    {
+      "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+      "revisions": {
+        "bad": {
+          "cpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          }
+        },
+        "fixed": {
+          "cpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          }
+        }
+      }
+    },
+    {
+      "point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727",
+      "revisions": {
+        "bad": {
+          "cpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          }
+        },
+        "fixed": {
+          "cpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 0,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 0,
+            "rf_wb_match": 0,
+            "rf_write_wb": 0
+          }
+        }
+      }
+    },
+    {
+      "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+      "revisions": {
+        "bad": {
+          "cpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 1,
+            "oracle_violation": 1,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 1,
+            "rf_wb_match": 1,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 0,
+            "instruction_valid_id": 1,
+            "oracle_violation": 1,
+            "rf_ecc_error_id": 0,
+            "rf_read_enable": 1,
+            "rf_wb_match": 1,
+            "rf_write_wb": 0
+          }
+        },
+        "fixed": {
+          "cpu": {
+            "alert_major_internal": 1,
+            "instruction_valid_id": 1,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 1,
+            "rf_read_enable": 1,
+            "rf_wb_match": 1,
+            "rf_write_wb": 0
+          },
+          "gpu": {
+            "alert_major_internal": 1,
+            "instruction_valid_id": 1,
+            "oracle_violation": 0,
+            "rf_ecc_error_id": 1,
+            "rf_read_enable": 1,
+            "rf_wb_match": 1,
+            "rf_write_wb": 0
+          }
+        }
+      }
+    }
+  ],
+  "surface": "rtl_boundary_evidence_bundle",
+  "trials": [
+    {
+      "executions": [
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "random_gpu:execution:0",
+          "launch_id": "random_gpu:launch:0",
+          "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+          "purpose": "bad_search",
+          "revision": "bad"
+        },
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "random_gpu:execution:1",
+          "launch_id": "random_gpu:launch:0",
+          "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "purpose": "bad_search",
+          "revision": "bad"
+        }
+      ],
+      "fixed_confirmations": [],
+      "launches": [
+        {
+          "backend_id": "gpu",
+          "end_offset_ns": 668058921,
+          "execution_ids": [
+            "random_gpu:execution:0",
+            "random_gpu:execution:1"
+          ],
+          "executor_identity": "ibex2188-gpu-runner:v1",
+          "launch_id": "random_gpu:launch:0",
+          "resident_width": 2,
+          "start_offset_ns": 252801
+        }
+      ],
+      "policy_trial": {
+        "budget_logical_bad_queries": 2,
+        "epochs": [
+          {
+            "bad_observations": [
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+                ],
+                "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+              },
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+                ],
+                "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+              }
+            ],
+            "epoch_index": 0,
+            "selected_point_ids": [
+              "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+              "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+            ]
+          }
+        ],
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {},
+          "kind": "random",
+          "seed_sha256": "e474b9a14b2bc686bedf33243cdcfb7c2b80e236a12d5423cf18372ba956e9d2"
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_trial",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+      },
+      "trial_id": "random_gpu",
+      "trial_wall_time_ns": 668058921
+    },
+    {
+      "executions": [
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "stratified_gpu:execution:0",
+          "launch_id": "stratified_gpu:launch:0",
+          "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "purpose": "bad_search",
+          "revision": "bad"
+        },
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "stratified_gpu:execution:1",
+          "launch_id": "stratified_gpu:launch:0",
+          "point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727",
+          "purpose": "bad_search",
+          "revision": "bad"
+        }
+      ],
+      "fixed_confirmations": [],
+      "launches": [
+        {
+          "backend_id": "gpu",
+          "end_offset_ns": 1165542289,
+          "execution_ids": [
+            "stratified_gpu:execution:0",
+            "stratified_gpu:execution:1"
+          ],
+          "executor_identity": "ibex2188-gpu-runner:v1",
+          "launch_id": "stratified_gpu:launch:0",
+          "resident_width": 2,
+          "start_offset_ns": 668313665
+        }
+      ],
+      "policy_trial": {
+        "budget_logical_bad_queries": 2,
+        "epochs": [
+          {
+            "bad_observations": [
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+                ],
+                "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+              },
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+                ],
+                "point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+              }
+            ],
+            "epoch_index": 0,
+            "selected_point_ids": [
+              "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+              "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+            ]
+          }
+        ],
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {
+            "strata_axes": [
+              "fault_enable"
+            ]
+          },
+          "kind": "stratified",
+          "seed_sha256": "df3ee25aeda706ed9d9fa633d5071c2331bfe1594c535758c2a50e1cd5e4874b"
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_trial",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+      },
+      "trial_id": "stratified_gpu",
+      "trial_wall_time_ns": 1165542289
+    },
+    {
+      "executions": [
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "ordered_refinement_gpu:execution:0",
+          "launch_id": "ordered_refinement_gpu:launch:0",
+          "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "purpose": "bad_search",
+          "revision": "bad"
+        },
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "ordered_refinement_gpu:execution:1",
+          "launch_id": "ordered_refinement_gpu:launch:0",
+          "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+          "purpose": "bad_search",
+          "revision": "bad"
+        }
+      ],
+      "fixed_confirmations": [],
+      "launches": [
+        {
+          "backend_id": "gpu",
+          "end_offset_ns": 1568152917,
+          "execution_ids": [
+            "ordered_refinement_gpu:execution:0",
+            "ordered_refinement_gpu:execution:1"
+          ],
+          "executor_identity": "ibex2188-gpu-runner:v1",
+          "launch_id": "ordered_refinement_gpu:launch:0",
+          "resident_width": 2,
+          "start_offset_ns": 1165773382
+        }
+      ],
+      "policy_trial": {
+        "budget_logical_bad_queries": 2,
+        "epochs": [
+          {
+            "bad_observations": [
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+                ],
+                "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+              },
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+                ],
+                "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+              }
+            ],
+            "epoch_index": 0,
+            "selected_point_ids": [
+              "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+              "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+            ]
+          }
+        ],
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {
+            "axis": "load_response_delay_cycles"
+          },
+          "kind": "ordered_refinement",
+          "seed_sha256": "ab991d2efc1e759832912f9a9d9892a7d24fdd95fc3532de0a1423e9ee16d16b"
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_trial",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+      },
+      "trial_id": "ordered_refinement_gpu",
+      "trial_wall_time_ns": 1568152917
+    },
+    {
+      "executions": [
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "novelty_gpu:execution:0",
+          "launch_id": "novelty_gpu:launch:0",
+          "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "purpose": "bad_search",
+          "revision": "bad"
+        },
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "novelty_gpu:execution:1",
+          "launch_id": "novelty_gpu:launch:0",
+          "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+          "purpose": "bad_search",
+          "revision": "bad"
+        },
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "novelty_gpu:execution:2",
+          "launch_id": "novelty_gpu:launch:1",
+          "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+          "purpose": "fixed_confirmation",
+          "revision": "fixed"
+        }
+      ],
+      "fixed_confirmations": [
+        {
+          "epoch_index": 0,
+          "fixed_oracle": 0,
+          "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+        }
+      ],
+      "launches": [
+        {
+          "backend_id": "gpu",
+          "end_offset_ns": 2307145930,
+          "execution_ids": [
+            "novelty_gpu:execution:0",
+            "novelty_gpu:execution:1"
+          ],
+          "executor_identity": "ibex2188-gpu-runner:v1",
+          "launch_id": "novelty_gpu:launch:0",
+          "resident_width": 2,
+          "start_offset_ns": 1568395667
+        },
+        {
+          "backend_id": "gpu",
+          "end_offset_ns": 2715498515,
+          "execution_ids": [
+            "novelty_gpu:execution:2"
+          ],
+          "executor_identity": "ibex2188-gpu-runner:v1",
+          "launch_id": "novelty_gpu:launch:1",
+          "resident_width": 2,
+          "start_offset_ns": 2307167798
+        }
+      ],
+      "policy_trial": {
+        "budget_logical_bad_queries": 2,
+        "epochs": [
+          {
+            "bad_observations": [
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+                ],
+                "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+              },
+              {
+                "bad_oracle": 1,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+                ],
+                "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+              }
+            ],
+            "epoch_index": 0,
+            "selected_point_ids": [
+              "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+              "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+            ]
+          }
+        ],
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {},
+          "kind": "novelty_boundary_guided",
+          "seed_sha256": "4f13f45e2e98e1419cf73adbec1e4e7fbea61955fcbdc3d04714afa2dd4c17f9"
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_trial",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+      },
+      "trial_id": "novelty_gpu",
+      "trial_wall_time_ns": 2715498515
+    },
+    {
+      "executions": [
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "random_cpu:execution:0",
+          "launch_id": "random_cpu:launch:0",
+          "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+          "purpose": "bad_search",
+          "revision": "bad"
+        },
+        {
+          "cycle_evals": 23,
+          "epoch_index": 0,
+          "execution_id": "random_cpu:execution:1",
+          "launch_id": "random_cpu:launch:1",
+          "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "purpose": "bad_search",
+          "revision": "bad"
+        }
+      ],
+      "fixed_confirmations": [],
+      "launches": [
+        {
+          "backend_id": "cpu",
+          "end_offset_ns": 2736323196,
+          "execution_ids": [
+            "random_cpu:execution:0"
+          ],
+          "executor_identity": "ibex2188-cpu-runner:v1",
+          "launch_id": "random_cpu:launch:0",
+          "resident_width": 1,
+          "start_offset_ns": 2715714196
+        },
+        {
+          "backend_id": "cpu",
+          "end_offset_ns": 2752759904,
+          "execution_ids": [
+            "random_cpu:execution:1"
+          ],
+          "executor_identity": "ibex2188-cpu-runner:v1",
+          "launch_id": "random_cpu:launch:1",
+          "resident_width": 1,
+          "start_offset_ns": 2736347877
+        }
+      ],
+      "policy_trial": {
+        "budget_logical_bad_queries": 2,
+        "epochs": [
+          {
+            "bad_observations": [
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+                ],
+                "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+              },
+              {
+                "bad_oracle": 0,
+                "coverage_feature_ids": [
+                  "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+                ],
+                "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+              }
+            ],
+            "epoch_index": 0,
+            "selected_point_ids": [
+              "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+              "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+            ]
+          }
+        ],
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {},
+          "kind": "random",
+          "seed_sha256": "e474b9a14b2bc686bedf33243cdcfb7c2b80e236a12d5423cf18372ba956e9d2"
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_trial",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+      },
+      "trial_id": "random_cpu",
+      "trial_wall_time_ns": 2752759904
+    }
+  ]
+}

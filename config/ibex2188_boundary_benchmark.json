@@ -1,0 +1,275 @@
+{
+  "admitted_cpu_sweep": {
+    "action_mapping": {
+      "disabled__0": "--no-fault --load-response-delay 0 --expect-bad-oracle 0 --expect-fixed-oracle 0",
+      "disabled__1": "--no-fault --load-response-delay 1 --expect-bad-oracle 0 --expect-fixed-oracle 0",
+      "guarded_bit0__0": "--load-response-delay 0 --expect-bad-oracle 0 --expect-fixed-oracle 0",
+      "guarded_bit0__1": "--load-response-delay 1 --expect-bad-oracle 1 --expect-fixed-oracle 0"
+    },
+    "fixed_parameters": {
+      "fault_bit": 0,
+      "fault_port": "a"
+    },
+    "sweep_space": {
+      "axes": [
+        {
+          "adjacent_value_pairs": [
+            [
+              "disabled",
+              "guarded_bit0"
+            ]
+          ],
+          "kind": "categorical",
+          "name": "fault_enable",
+          "values": [
+            "disabled",
+            "guarded_bit0"
+          ]
+        },
+        {
+          "kind": "ordered",
+          "name": "load_response_delay_cycles",
+          "values": [
+            0,
+            1
+          ]
+        }
+      ],
+      "schema_version": 1,
+      "surface": "rtl_boundary_sweep_space"
+    }
+  },
+  "authority": {
+    "adjudicator_commit": "a4256ae46b782d8b9645551c9c3c11fbce2d3765",
+    "adjudicator_repo": "https://github.com/takatodo/verilator-model-sidecar.git",
+    "codex_runtime_execution": true,
+    "required_adjudicator_surfaces": [
+      "rtl_boundary_sweep_enumeration",
+      "rtl_boundary_selector_response",
+      "rtl_boundary_experiment_contract",
+      "rtl_boundary_evidence_bundle",
+      "rtl_boundary_ground_truth",
+      "rtl_boundary_analysis",
+      "rtl_boundary_policy_trial",
+      "rtl_boundary_policy_analysis",
+      "rtl_boundary_adjudication",
+      "rtl_boundary_plot_payload",
+      "rtl_boundary_report_bundle",
+      "rtl_boundary_report_validation",
+      "rtl_boundary_pipeline_result"
+    ],
+    "runtime_owner": "repository_defined_runner"
+  },
+  "current_boundary_profile": {
+    "artifacts": {
+      "adjudication": {
+        "path": "evidence/ibex2188_boundary_profile_v1/adjudication.json",
+        "sha256": "0b7614850e3e02b28c4f2fadb256af63f06b6f3169d863600404b6cba848b7d2"
+      },
+      "profile": {
+        "path": "evidence/ibex2188_boundary_profile_v1/profile.json",
+        "sha256": "93d9320ac777e1f37a2671b4437c25319aaac2fffc2b56328ad6957594889c52"
+      },
+      "report_bundle": {
+        "path": "evidence/ibex2188_boundary_profile_v1/report_bundle.json",
+        "sha256": "8bd8be2d6fc35e8c717efa7877a2bdf49aa66b0e02266f0e9e6dabfe0e53c3cb"
+      }
+    },
+    "point_count": 4,
+    "report_artifacts": {
+      "graph": {
+        "path": "evidence/ibex2188_boundary_profile_v1/graph.svg",
+        "sha256": "9c26b2af953825d3a1e3b876b029deef224493402814d1774dca08fc96574bd2"
+      },
+      "markdown": {
+        "path": "evidence/ibex2188_boundary_profile_v1/report.md",
+        "sha256": "9bdf786e771e689898445a154abdf4a29cb0ee0a9d17fe018a9b6e8a5067b286"
+      }
+    },
+    "runner_identity": "ibex2188-gpu-runner:v1",
+    "status": "pinned",
+    "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+  },
+  "current_boundary_profile_inputs": {
+    "artifacts": {
+      "experiment_contract": {
+        "path": "evidence/ibex2188_boundary_profile_inputs_v1/experiment_contract.json",
+        "sha256": "36a2a5e405cb0ede4ecfb1db158b278b0957567e186cfe496e25ac4f81230529"
+      },
+      "profile": {
+        "path": "evidence/ibex2188_boundary_profile_inputs_v1/profile.json",
+        "sha256": "b85520dc1dce3a7722d93c6f5057c82362d7971cb5d9fa0c7e9f23a8691f2746"
+      },
+      "semantic_manifest_bad": {
+        "path": "evidence/ibex2188_boundary_profile_inputs_v1/semantic_manifest_bad.json",
+        "sha256": "06cfc6891fc6e30edd5c8c079936ebed283889906e238586c41c4022b21853b3"
+      },
+      "semantic_manifest_fixed": {
+        "path": "evidence/ibex2188_boundary_profile_inputs_v1/semantic_manifest_fixed.json",
+        "sha256": "0edbf3d49236c17251a34746e247fd704c7f60f893722a1f4c4d1c6db3b43158"
+      }
+    },
+    "experiment_contract_sha256": "0be5efbec7f7948a45e2fe737bef5d689cf14b57bd0a42676590c7f84327bff3",
+    "status": "experiment_contract_and_gpu_evidence_ready"
+  },
+  "current_cpu_evidence": {
+    "bad_oracle_violation": 1,
+    "fault_enable": 1,
+    "fixed_oracle_violation": 0,
+    "load_response_delay": 1,
+    "runner": "scripts/run_ibex2188_cpu_regression.sh",
+    "runner_observations_sha256": "5ce107018362183af088d4759e492afa8c7bb965754b1517d6e50a3f4dda06d8",
+    "semantic_projection_at_injection": {
+      "bad": {
+        "alert_major_internal": 0,
+        "instruction_valid_id": 1,
+        "rf_ecc_error_id": 0,
+        "rf_read_enable": 1,
+        "rf_wb_match": 1,
+        "rf_write_wb": 0
+      },
+      "fixed": {
+        "alert_major_internal": 1,
+        "instruction_valid_id": 1,
+        "rf_ecc_error_id": 1,
+        "rf_read_enable": 1,
+        "rf_wb_match": 1,
+        "rf_write_wb": 0
+      }
+    },
+    "status": "pass",
+    "testbench": "examples/ibex2188/ibex2188_ecc_temporal_tb.sv"
+  },
+  "current_cpu_sweep_evidence": {
+    "artifacts": {
+      "analysis": {
+        "path": "evidence/ibex2188_cpu_ground_truth_v1/ground_truth_analysis.json",
+        "sha256": "0965e872cd0de206ea24d66a7bef6959e5213fad048225a2c5f3a0debde5854f"
+      },
+      "cpu_observation_bundle": {
+        "path": "evidence/ibex2188_cpu_ground_truth_v1/cpu_observation_bundle.json",
+        "sha256": "b0bf5eb6a05c09ab9b3172516afd99ee2db8ff229d984addc551fe139c903c8a"
+      },
+      "ground_truth": {
+        "path": "evidence/ibex2188_cpu_ground_truth_v1/ground_truth.json",
+        "sha256": "706fefcbf186003b60e86d58155d4d1e0844c11f9e05d861fb82362da0816ef3"
+      }
+    },
+    "bad_boundary_edge_count": 2,
+    "bad_failure_count": 1,
+    "disappeared_failure_count": 1,
+    "fixed_failure_count": 0,
+    "point_count": 4,
+    "status": "admitted_cpu_ground_truth",
+    "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+  },
+  "schema_version": 1,
+  "source_evidence": {
+    "bad_expression": "|rf_ecc_err_a & rf_ren_a & ~rf_rd_a_wb_match",
+    "existing_dv_condition": "rf_ren == 1'b1 && (rf_rd_wb_match == 1'b0 || rf_write_wb == 1'b0)",
+    "existing_dv_observable": "alert_major_internal_o",
+    "existing_dv_test": "dv/uvm/core_ibex/tests/core_ibex_test_lib.sv:core_ibex_rf_intg_test",
+    "fixed_expression": "|rf_ecc_err_a & rf_ren_a & ~(rf_rd_a_wb_match & rf_write_wb)",
+    "issue_condition": "ECC read error is masked when a dependent operand matches the writeback address but rf_write_wb is low."
+  },
+  "status": "pinned_full_grid_gpu_boundary_profile",
+  "surface": "ibex2188_boundary_benchmark_target",
+  "sweep_axis_candidates": [
+    {
+      "finite_values_status": "admitted_cpu_sweep",
+      "kind": "categorical",
+      "name": "fault_enable",
+      "source_support": "The directed wrapper exposes an ECC read-data fault control and its no-fault control."
+    },
+    {
+      "finite_values_status": "pending_external_experiment_contract",
+      "kind": "categorical",
+      "name": "read_port",
+      "source_support": "The upstream fix changes both A and B register-file read ports."
+    },
+    {
+      "finite_values_status": "pending_external_experiment_contract",
+      "kind": "ordered",
+      "name": "fault_injection_offset_cycles",
+      "source_support": "The issue is a one-cycle load-hazard / writeback-forwarding coincidence."
+    },
+    {
+      "finite_values": [
+        0,
+        1
+      ],
+      "finite_values_status": "verified_ordered_control",
+      "kind": "ordered",
+      "name": "load_response_delay_cycles",
+      "source_support": "The issue requires an outstanding load and dependent instruction stall."
+    },
+    {
+      "finite_values_status": "pending_directed_program_contract",
+      "kind": "ordered",
+      "name": "dependency_distance",
+      "source_support": "The issue reproducer uses a load immediately followed by a dependent branch."
+    },
+    {
+      "finite_values_status": "pending_fault_injection_binding",
+      "kind": "ordered",
+      "name": "fault_bit_position",
+      "source_support": "The existing DV test flips one register-file ECC read-data bit."
+    }
+  ],
+  "target": {
+    "bad_revision": "668233699df9ec2a40413e69e0de0a5b10185980",
+    "checkpoint_identity": "directed_load_dependent_branch_one_cycle_response_v1",
+    "configuration": {
+      "RegFile": "ibex_pkg::RegFileFF",
+      "RegFileECC": "derived_from_SecureIbex",
+      "SecureIbex": 1,
+      "WritebackStage": 1,
+      "named_configuration": "opentitan"
+    },
+    "fix_commit": "9e4a950aa6aa0e20eb638aeeb78743d4a9ddaaeb",
+    "fixed_revision": "9e4a950aa6aa0e20eb638aeeb78743d4a9ddaaeb",
+    "ip": "ibex_core",
+    "issue": "https://github.com/lowRISC/ibex/issues/2188",
+    "oracle_identity": "ibex2188.ecc_read_error_requires_major_alert_when_no_wb_forwarding.v1",
+    "semantic_projection": {
+      "observables": [
+        {
+          "name": "rf_read_enable",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_read_enable",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_wb_match",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_wb_match",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_write_wb",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_write_wb",
+          "width_bits": 1
+        },
+        {
+          "name": "rf_ecc_error_id",
+          "semantic_id": "ibex2188_ecc_temporal_tb.rf_ecc_error_id",
+          "width_bits": 1
+        },
+        {
+          "name": "instruction_valid_id",
+          "semantic_id": "ibex2188_ecc_temporal_tb.instruction_valid_id",
+          "width_bits": 1
+        },
+        {
+          "name": "alert_major_internal",
+          "semantic_id": "ibex2188_ecc_temporal_tb.alert_major_internal",
+          "width_bits": 1
+        }
+      ],
+      "oracle": {
+        "name": "oracle_violation",
+        "semantic_id": "ibex2188_ecc_temporal_tb.oracle_violation",
+        "width_bits": 1
+      }
+    },
+    "target_id": "ibex2188"
+  }
+}

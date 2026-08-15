@@ -1,0 +1,22 @@
+{
+  "cpu_observation_bundle_sha256": "e84099bbab5c1a169ca565b39eb0df5e6096722058ca7131c6c0dec89ca231d7",
+  "evidence_bundle": {
+    "path": "evidence/ibex2188_boundary_profile_inputs_v1/evidence_bundle.json",
+    "sha256": "9037f7d0b8ccceb711c0fcc7710ca1ba6ebef214a4b4e37ca40125c6f5f9f1ee"
+  },
+  "evidence_bundle_sha256": "9037f7d0b8ccceb711c0fcc7710ca1ba6ebef214a4b4e37ca40125c6f5f9f1ee",
+  "experiment_contract_sha256": "0be5efbec7f7948a45e2fe737bef5d689cf14b57bd0a42676590c7f84327bff3",
+  "ground_truth_sha256": "3b351ebcf8dcd812a947ebdb6ea452ebd6e5baa41c6bc28fb9936335d71317e2",
+  "schema_version": 1,
+  "semantic_manifest_sha256": {
+    "bad": "d7ea635c0e1c71c8df445a1f641420a057d17e88acd29b35190c70965d90a38e",
+    "fixed": "4bcee9756dcfb4b5a159114235227dcdfb00ada25298c376115bdce6b54b8bee"
+  },
+  "source_file_sha256": {
+    "experiment_contract.json": "36a2a5e405cb0ede4ecfb1db158b278b0957567e186cfe496e25ac4f81230529",
+    "semantic_manifest_bad.json": "06cfc6891fc6e30edd5c8c079936ebed283889906e238586c41c4022b21853b3",
+    "semantic_manifest_fixed.json": "0edbf3d49236c17251a34746e247fd704c7f60f893722a1f4c4d1c6db3b43158"
+  },
+  "status": "experiment_contract_and_gpu_evidence_ready",
+  "surface": "ibex2188_boundary_profile_inputs"
+}

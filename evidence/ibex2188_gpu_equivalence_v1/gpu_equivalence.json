@@ -1,0 +1,134 @@
+{
+  "gpu": {
+    "device": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "kernel": "vl_eval_batch_gpu",
+    "sm": "sm_89",
+    "storage_bytes": 4224
+  },
+  "points": [
+    {
+      "cpu_observables": {
+        "alert_major_internal": 0,
+        "alert_seen": 0,
+        "done": 1,
+        "fault_seen": 1,
+        "instruction_valid_id": 1,
+        "oracle_violation": 1,
+        "rf_ecc_error_id": 0,
+        "rf_read_enable": 1,
+        "rf_wb_match": 1,
+        "rf_write_wb": 0
+      },
+      "delay_cycles": 1,
+      "gpu_observables": {
+        "alert_major_internal": 0,
+        "alert_seen": 0,
+        "done": 1,
+        "fault_seen": 1,
+        "instruction_valid_id": 1,
+        "oracle_violation": 1,
+        "rf_ecc_error_id": 0,
+        "rf_read_enable": 1,
+        "rf_wb_match": 1,
+        "rf_write_wb": 0
+      },
+      "match": true,
+      "revision": "bad"
+    },
+    {
+      "cpu_observables": {
+        "alert_major_internal": 1,
+        "alert_seen": 1,
+        "done": 1,
+        "fault_seen": 1,
+        "instruction_valid_id": 1,
+        "oracle_violation": 0,
+        "rf_ecc_error_id": 1,
+        "rf_read_enable": 1,
+        "rf_wb_match": 1,
+        "rf_write_wb": 0
+      },
+      "delay_cycles": 1,
+      "gpu_observables": {
+        "alert_major_internal": 1,
+        "alert_seen": 1,
+        "done": 1,
+        "fault_seen": 1,
+        "instruction_valid_id": 1,
+        "oracle_violation": 0,
+        "rf_ecc_error_id": 1,
+        "rf_read_enable": 1,
+        "rf_wb_match": 1,
+        "rf_write_wb": 0
+      },
+      "match": true,
+      "revision": "fixed"
+    },
+    {
+      "cpu_observables": {
+        "alert_major_internal": 0,
+        "alert_seen": 0,
+        "done": 1,
+        "fault_seen": 0,
+        "instruction_valid_id": 0,
+        "oracle_violation": 0,
+        "rf_ecc_error_id": 0,
+        "rf_read_enable": 0,
+        "rf_wb_match": 0,
+        "rf_write_wb": 0
+      },
+      "delay_cycles": 0,
+      "gpu_observables": {
+        "alert_major_internal": 0,
+        "alert_seen": 0,
+        "done": 1,
+        "fault_seen": 0,
+        "instruction_valid_id": 0,
+        "oracle_violation": 0,
+        "rf_ecc_error_id": 0,
+        "rf_read_enable": 0,
+        "rf_wb_match": 0,
+        "rf_write_wb": 0
+      },
+      "match": true,
+      "revision": "bad"
+    },
+    {
+      "cpu_observables": {
+        "alert_major_internal": 0,
+        "alert_seen": 0,
+        "done": 1,
+        "fault_seen": 0,
+        "instruction_valid_id": 0,
+        "oracle_violation": 0,
+        "rf_ecc_error_id": 0,
+        "rf_read_enable": 0,
+        "rf_wb_match": 0,
+        "rf_write_wb": 0
+      },
+      "delay_cycles": 0,
+      "gpu_observables": {
+        "alert_major_internal": 0,
+        "alert_seen": 0,
+        "done": 1,
+        "fault_seen": 0,
+        "instruction_valid_id": 0,
+        "oracle_violation": 0,
+        "rf_ecc_error_id": 0,
+        "rf_read_enable": 0,
+        "rf_wb_match": 0,
+        "rf_write_wb": 0
+      },
+      "match": true,
+      "revision": "fixed"
+    }
+  ],
+  "revisions": {
+    "bad": "668233699df9ec2a40413e69e0de0a5b10185980",
+    "fixed": "9e4a950aa6aa0e20eb638aeeb78743d4a9ddaaeb"
+  },
+  "runner": "scripts/run_ibex2188_gpu_equivalence.sh",
+  "schema_version": 1,
+  "status": "pass",
+  "surface": "ibex2188_gpu_equivalence_evidence"
+}

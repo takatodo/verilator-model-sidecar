@@ -1,0 +1,27 @@
+{
+  "adjudication_sha256": "98635b24bbe02810bab55ecf8d9044b6c09980d9e989ae37edacaed25001acf2",
+  "artifacts": {
+    "adjudication": {
+      "path": "evidence/ibex2188_boundary_profile_v1/adjudication.json"
+    },
+    "evidence_bundle": {
+      "path": "evidence/ibex2188_boundary_profile_inputs_v1/evidence_bundle.json"
+    },
+    "experiment_contract": {
+      "path": "evidence/ibex2188_boundary_profile_inputs_v1/experiment_contract.json"
+    },
+    "graph": {
+      "path": "evidence/ibex2188_boundary_profile_v1/graph.svg"
+    },
+    "report_bundle": {
+      "path": "evidence/ibex2188_boundary_profile_v1/report_bundle.json"
+    }
+  },
+  "evidence_bundle_sha256": "9037f7d0b8ccceb711c0fcc7710ca1ba6ebef214a4b4e37ca40125c6f5f9f1ee",
+  "experiment_contract_sha256": "0be5efbec7f7948a45e2fe737bef5d689cf14b57bd0a42676590c7f84327bff3",
+  "experiment_id": "ibex2188-boundary-v1",
+  "report_bundle_sha256": "f11f00584b2cb431585b49f7138aad7890b2d24df654abfd648de4c396348c01",
+  "schema_version": 1,
+  "status": "pinned",
+  "surface": "ibex2188_boundary_profile"
+}

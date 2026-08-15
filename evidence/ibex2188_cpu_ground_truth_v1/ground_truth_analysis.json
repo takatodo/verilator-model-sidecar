@@ -1,0 +1,138 @@
+{
+  "axes": [
+    {
+      "adjacent_value_pairs": [
+        [
+          "disabled",
+          "guarded_bit0"
+        ]
+      ],
+      "kind": "categorical",
+      "name": "fault_enable",
+      "values": [
+        "disabled",
+        "guarded_bit0"
+      ]
+    },
+    {
+      "kind": "ordered",
+      "name": "load_response_delay_cycles",
+      "values": [
+        0,
+        1
+      ]
+    }
+  ],
+  "bad_to_fixed": {
+    "disappeared_failure_point_ids": [
+      "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+    ],
+    "introduced_failure_point_ids": [],
+    "persistent_failure_point_ids": []
+  },
+  "observations": [
+    {
+      "bad_oracle": 0,
+      "fixed_oracle": 0,
+      "parameters": {
+        "fault_enable": "disabled",
+        "load_response_delay_cycles": 0
+      },
+      "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+    },
+    {
+      "bad_oracle": 0,
+      "fixed_oracle": 0,
+      "parameters": {
+        "fault_enable": "disabled",
+        "load_response_delay_cycles": 1
+      },
+      "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+    },
+    {
+      "bad_oracle": 0,
+      "fixed_oracle": 0,
+      "parameters": {
+        "fault_enable": "guarded_bit0",
+        "load_response_delay_cycles": 0
+      },
+      "point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+    },
+    {
+      "bad_oracle": 1,
+      "fixed_oracle": 0,
+      "parameters": {
+        "fault_enable": "guarded_bit0",
+        "load_response_delay_cycles": 1
+      },
+      "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+    }
+  ],
+  "point_count": 4,
+  "revisions": {
+    "bad": {
+      "boundary_edge_count": 2,
+      "boundary_edges": [
+        {
+          "axis": "fault_enable",
+          "axis_kind": "categorical",
+          "fail_point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+          "pass_point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+        },
+        {
+          "axis": "load_response_delay_cycles",
+          "axis_kind": "ordered",
+          "fail_point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+          "pass_point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+        }
+      ],
+      "fail_point_count": 1,
+      "fail_point_ids": [
+        "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+      ],
+      "failure_component_count": 1,
+      "failure_components": [
+        {
+          "component_id": "failure-component:v1:15112ec55fb57f384860e8e92cc63684c9e4253df3fcebe066092bb0af818702",
+          "point_ids": [
+            "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+          ]
+        }
+      ],
+      "minimal_failing_points": {
+        "point_ids": [
+          "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+        ],
+        "status": "computed"
+      },
+      "pass_point_count": 3,
+      "pass_point_ids": [
+        "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+        "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727",
+        "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+      ]
+    },
+    "fixed": {
+      "boundary_edge_count": 0,
+      "boundary_edges": [],
+      "fail_point_count": 0,
+      "fail_point_ids": [],
+      "failure_component_count": 0,
+      "failure_components": [],
+      "minimal_failing_points": {
+        "point_ids": [],
+        "status": "computed"
+      },
+      "pass_point_count": 4,
+      "pass_point_ids": [
+        "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+        "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727",
+        "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+        "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+      ]
+    }
+  },
+  "schema_version": 1,
+  "surface": "rtl_boundary_analysis",
+  "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+}

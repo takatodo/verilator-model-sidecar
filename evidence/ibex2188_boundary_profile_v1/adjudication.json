@@ -1,0 +1,1188 @@
+{
+  "backend_comparisons": [
+    {
+      "comparison_id": "random-backend",
+      "rows": [
+        {
+          "accounting": {
+            "bad_search_state_evals": 2,
+            "batch_launches": 2,
+            "cycle_evals": 46,
+            "duplicate_state_evals": 0,
+            "fixed_confirmation_state_evals": 0,
+            "scheduled_state_evals": 2,
+            "unique_state_evals": 2,
+            "wall_time_ns": 2752759904
+          },
+          "backend": {
+            "backend_id": "cpu",
+            "executor_identity": "ibex2188-cpu-runner:v1",
+            "kind": "cpu",
+            "resident_width": 1
+          },
+          "final_prediction_metrics": {
+            "boundary_hausdorff": {
+              "status": "unbounded"
+            },
+            "boundary_precision": {
+              "denominator": 0,
+              "numerator": 0,
+              "reason": "no_predicted_boundary",
+              "status": "not_applicable"
+            },
+            "boundary_recall": {
+              "denominator": 2,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "epoch_index": 0,
+            "failure_region_iou": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "minimal_failing_point_recovery": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "status": "computed"
+          },
+          "first_bracket": {
+            "status": "not_reached"
+          },
+          "first_exact_boundary": {
+            "status": "not_reached"
+          },
+          "first_violation": {
+            "status": "not_reached"
+          },
+          "policy": {
+            "algorithm_version": 1,
+            "configuration": {},
+            "kind": "random",
+            "seed_sha256": "e474b9a14b2bc686bedf33243cdcfb7c2b80e236a12d5423cf18372ba956e9d2"
+          },
+          "trial_id": "random_cpu"
+        },
+        {
+          "accounting": {
+            "bad_search_state_evals": 2,
+            "batch_launches": 1,
+            "cycle_evals": 46,
+            "duplicate_state_evals": 0,
+            "fixed_confirmation_state_evals": 0,
+            "scheduled_state_evals": 2,
+            "unique_state_evals": 2,
+            "wall_time_ns": 668058921
+          },
+          "backend": {
+            "backend_id": "gpu",
+            "executor_identity": "ibex2188-gpu-runner:v1",
+            "kind": "gpu",
+            "resident_width": 2
+          },
+          "final_prediction_metrics": {
+            "boundary_hausdorff": {
+              "status": "unbounded"
+            },
+            "boundary_precision": {
+              "denominator": 0,
+              "numerator": 0,
+              "reason": "no_predicted_boundary",
+              "status": "not_applicable"
+            },
+            "boundary_recall": {
+              "denominator": 2,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "epoch_index": 0,
+            "failure_region_iou": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "minimal_failing_point_recovery": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "status": "computed"
+          },
+          "first_bracket": {
+            "status": "not_reached"
+          },
+          "first_exact_boundary": {
+            "status": "not_reached"
+          },
+          "first_violation": {
+            "status": "not_reached"
+          },
+          "policy": {
+            "algorithm_version": 1,
+            "configuration": {},
+            "kind": "random",
+            "seed_sha256": "e474b9a14b2bc686bedf33243cdcfb7c2b80e236a12d5423cf18372ba956e9d2"
+          },
+          "trial_id": "random_gpu"
+        }
+      ],
+      "selection_trace_sha256": "7ef228721a868f3f6f65f66fef6570385863efac3177a835c74d16e40bc5393d",
+      "trial_ids": [
+        "random_cpu",
+        "random_gpu"
+      ]
+    }
+  ],
+  "ground_truth_analysis": {
+    "axes": [
+      {
+        "adjacent_value_pairs": [
+          [
+            "disabled",
+            "guarded_bit0"
+          ]
+        ],
+        "kind": "categorical",
+        "name": "fault_enable",
+        "values": [
+          "disabled",
+          "guarded_bit0"
+        ]
+      },
+      {
+        "kind": "ordered",
+        "name": "load_response_delay_cycles",
+        "values": [
+          0,
+          1
+        ]
+      }
+    ],
+    "bad_to_fixed": {
+      "disappeared_failure_point_ids": [
+        "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+      ],
+      "introduced_failure_point_ids": [],
+      "persistent_failure_point_ids": []
+    },
+    "observations": [
+      {
+        "bad_oracle": 0,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "disabled",
+          "load_response_delay_cycles": 0
+        },
+        "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+      },
+      {
+        "bad_oracle": 0,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "disabled",
+          "load_response_delay_cycles": 1
+        },
+        "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+      },
+      {
+        "bad_oracle": 0,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "guarded_bit0",
+          "load_response_delay_cycles": 0
+        },
+        "point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+      },
+      {
+        "bad_oracle": 1,
+        "fixed_oracle": 0,
+        "parameters": {
+          "fault_enable": "guarded_bit0",
+          "load_response_delay_cycles": 1
+        },
+        "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+      }
+    ],
+    "point_count": 4,
+    "revisions": {
+      "bad": {
+        "boundary_edge_count": 2,
+        "boundary_edges": [
+          {
+            "axis": "fault_enable",
+            "axis_kind": "categorical",
+            "fail_point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+            "pass_point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+          },
+          {
+            "axis": "load_response_delay_cycles",
+            "axis_kind": "ordered",
+            "fail_point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+            "pass_point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+          }
+        ],
+        "fail_point_count": 1,
+        "fail_point_ids": [
+          "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+        ],
+        "failure_component_count": 1,
+        "failure_components": [
+          {
+            "component_id": "failure-component:v1:15112ec55fb57f384860e8e92cc63684c9e4253df3fcebe066092bb0af818702",
+            "point_ids": [
+              "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+            ]
+          }
+        ],
+        "minimal_failing_points": {
+          "point_ids": [
+            "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+          ],
+          "status": "computed"
+        },
+        "pass_point_count": 3,
+        "pass_point_ids": [
+          "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+          "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727",
+          "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+        ]
+      },
+      "fixed": {
+        "boundary_edge_count": 0,
+        "boundary_edges": [],
+        "fail_point_count": 0,
+        "fail_point_ids": [],
+        "failure_component_count": 0,
+        "failure_components": [],
+        "minimal_failing_points": {
+          "point_ids": [],
+          "status": "computed"
+        },
+        "pass_point_count": 4,
+        "pass_point_ids": [
+          "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+          "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727",
+          "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c",
+          "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+        ]
+      }
+    },
+    "schema_version": 1,
+    "surface": "rtl_boundary_analysis",
+    "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22"
+  },
+  "input_canonical_sha256": {
+    "evidence_bundle": "9037f7d0b8ccceb711c0fcc7710ca1ba6ebef214a4b4e37ca40125c6f5f9f1ee",
+    "experiment_contract": "0be5efbec7f7948a45e2fe737bef5d689cf14b57bd0a42676590c7f84327bff3"
+  },
+  "issues": [],
+  "schema_version": 1,
+  "selector_comparisons": [
+    {
+      "backend_id": "gpu",
+      "comparison_id": "selector-on-gpu",
+      "rows": [
+        {
+          "accounting": {
+            "bad_search_state_evals": 2,
+            "batch_launches": 1,
+            "cycle_evals": 46,
+            "duplicate_state_evals": 0,
+            "fixed_confirmation_state_evals": 0,
+            "scheduled_state_evals": 2,
+            "unique_state_evals": 2,
+            "wall_time_ns": 668058921
+          },
+          "backend": {
+            "backend_id": "gpu",
+            "executor_identity": "ibex2188-gpu-runner:v1",
+            "kind": "gpu",
+            "resident_width": 2
+          },
+          "final_prediction_metrics": {
+            "boundary_hausdorff": {
+              "status": "unbounded"
+            },
+            "boundary_precision": {
+              "denominator": 0,
+              "numerator": 0,
+              "reason": "no_predicted_boundary",
+              "status": "not_applicable"
+            },
+            "boundary_recall": {
+              "denominator": 2,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "epoch_index": 0,
+            "failure_region_iou": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "minimal_failing_point_recovery": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "status": "computed"
+          },
+          "first_bracket": {
+            "status": "not_reached"
+          },
+          "first_exact_boundary": {
+            "status": "not_reached"
+          },
+          "first_violation": {
+            "status": "not_reached"
+          },
+          "policy": {
+            "algorithm_version": 1,
+            "configuration": {},
+            "kind": "random",
+            "seed_sha256": "e474b9a14b2bc686bedf33243cdcfb7c2b80e236a12d5423cf18372ba956e9d2"
+          },
+          "trial_id": "random_gpu"
+        },
+        {
+          "accounting": {
+            "bad_search_state_evals": 2,
+            "batch_launches": 1,
+            "cycle_evals": 46,
+            "duplicate_state_evals": 0,
+            "fixed_confirmation_state_evals": 0,
+            "scheduled_state_evals": 2,
+            "unique_state_evals": 2,
+            "wall_time_ns": 1165542289
+          },
+          "backend": {
+            "backend_id": "gpu",
+            "executor_identity": "ibex2188-gpu-runner:v1",
+            "kind": "gpu",
+            "resident_width": 2
+          },
+          "final_prediction_metrics": {
+            "boundary_hausdorff": {
+              "status": "unbounded"
+            },
+            "boundary_precision": {
+              "denominator": 0,
+              "numerator": 0,
+              "reason": "no_predicted_boundary",
+              "status": "not_applicable"
+            },
+            "boundary_recall": {
+              "denominator": 2,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "epoch_index": 0,
+            "failure_region_iou": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "minimal_failing_point_recovery": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "status": "computed"
+          },
+          "first_bracket": {
+            "status": "not_reached"
+          },
+          "first_exact_boundary": {
+            "status": "not_reached"
+          },
+          "first_violation": {
+            "status": "not_reached"
+          },
+          "policy": {
+            "algorithm_version": 1,
+            "configuration": {
+              "strata_axes": [
+                "fault_enable"
+              ]
+            },
+            "kind": "stratified",
+            "seed_sha256": "df3ee25aeda706ed9d9fa633d5071c2331bfe1594c535758c2a50e1cd5e4874b"
+          },
+          "trial_id": "stratified_gpu"
+        },
+        {
+          "accounting": {
+            "bad_search_state_evals": 2,
+            "batch_launches": 1,
+            "cycle_evals": 46,
+            "duplicate_state_evals": 0,
+            "fixed_confirmation_state_evals": 0,
+            "scheduled_state_evals": 2,
+            "unique_state_evals": 2,
+            "wall_time_ns": 1568152917
+          },
+          "backend": {
+            "backend_id": "gpu",
+            "executor_identity": "ibex2188-gpu-runner:v1",
+            "kind": "gpu",
+            "resident_width": 2
+          },
+          "final_prediction_metrics": {
+            "boundary_hausdorff": {
+              "status": "unbounded"
+            },
+            "boundary_precision": {
+              "denominator": 0,
+              "numerator": 0,
+              "reason": "no_predicted_boundary",
+              "status": "not_applicable"
+            },
+            "boundary_recall": {
+              "denominator": 2,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "epoch_index": 0,
+            "failure_region_iou": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "minimal_failing_point_recovery": {
+              "denominator": 1,
+              "numerator": 0,
+              "status": "computed",
+              "value": 0.0
+            },
+            "status": "computed"
+          },
+          "first_bracket": {
+            "status": "not_reached"
+          },
+          "first_exact_boundary": {
+            "status": "not_reached"
+          },
+          "first_violation": {
+            "status": "not_reached"
+          },
+          "policy": {
+            "algorithm_version": 1,
+            "configuration": {
+              "axis": "load_response_delay_cycles"
+            },
+            "kind": "ordered_refinement",
+            "seed_sha256": "ab991d2efc1e759832912f9a9d9892a7d24fdd95fc3532de0a1423e9ee16d16b"
+          },
+          "trial_id": "ordered_refinement_gpu"
+        },
+        {
+          "accounting": {
+            "bad_search_state_evals": 2,
+            "batch_launches": 2,
+            "cycle_evals": 69,
+            "duplicate_state_evals": 0,
+            "fixed_confirmation_state_evals": 1,
+            "scheduled_state_evals": 3,
+            "unique_state_evals": 3,
+            "wall_time_ns": 2715498515
+          },
+          "backend": {
+            "backend_id": "gpu",
+            "executor_identity": "ibex2188-gpu-runner:v1",
+            "kind": "gpu",
+            "resident_width": 2
+          },
+          "final_prediction_metrics": {
+            "boundary_hausdorff": {
+              "ordinal_distance": 0,
+              "status": "computed"
+            },
+            "boundary_precision": {
+              "denominator": 2,
+              "numerator": 2,
+              "status": "computed",
+              "value": 1.0
+            },
+            "boundary_recall": {
+              "denominator": 2,
+              "numerator": 2,
+              "status": "computed",
+              "value": 1.0
+            },
+            "epoch_index": 0,
+            "failure_region_iou": {
+              "denominator": 1,
+              "numerator": 1,
+              "status": "computed",
+              "value": 1.0
+            },
+            "minimal_failing_point_recovery": {
+              "denominator": 1,
+              "numerator": 1,
+              "status": "computed",
+              "value": 1.0
+            },
+            "status": "computed"
+          },
+          "first_bracket": {
+            "status": "not_reached"
+          },
+          "first_exact_boundary": {
+            "epoch_index": 0,
+            "logical_bad_queries": 2,
+            "status": "reached"
+          },
+          "first_violation": {
+            "epoch_index": 0,
+            "logical_bad_queries": 2,
+            "status": "reached"
+          },
+          "policy": {
+            "algorithm_version": 1,
+            "configuration": {},
+            "kind": "novelty_boundary_guided",
+            "seed_sha256": "4f13f45e2e98e1419cf73adbec1e4e7fbea61955fcbdc3d04714afa2dd4c17f9"
+          },
+          "trial_id": "novelty_gpu"
+        }
+      ],
+      "trial_ids": [
+        "random_gpu",
+        "stratified_gpu",
+        "ordered_refinement_gpu",
+        "novelty_gpu"
+      ]
+    }
+  ],
+  "status": "pass",
+  "surface": "rtl_boundary_adjudication",
+  "trial_results": [
+    {
+      "accounting": {
+        "bad_search_state_evals": 2,
+        "batch_launches": 1,
+        "cycle_evals": 46,
+        "duplicate_state_evals": 0,
+        "fixed_confirmation_state_evals": 0,
+        "scheduled_state_evals": 2,
+        "unique_state_evals": 2,
+        "wall_time_ns": 668058921
+      },
+      "backend": {
+        "backend_id": "gpu",
+        "executor_identity": "ibex2188-gpu-runner:v1",
+        "kind": "gpu",
+        "resident_width": 2
+      },
+      "fixed_confirmations": [],
+      "observation_trace": [
+        [
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+            ],
+            "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+          },
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+            ],
+            "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+          }
+        ]
+      ],
+      "policy_analysis": {
+        "budget_logical_bad_queries": 2,
+        "completion_status": "budget_reached",
+        "duplicate_bad_queries": 0,
+        "epoch_count": 1,
+        "first_bracket": {
+          "status": "not_reached"
+        },
+        "first_violation": {
+          "status": "not_reached"
+        },
+        "ground_truth_sha256": "3b351ebcf8dcd812a947ebdb6ea452ebd6e5baa41c6bc28fb9936335d71317e2",
+        "logical_bad_queries": 2,
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {},
+          "kind": "random",
+          "seed_sha256": "e474b9a14b2bc686bedf33243cdcfb7c2b80e236a12d5423cf18372ba956e9d2"
+        },
+        "prediction_metrics": {
+          "epochs": [
+            {
+              "boundary_hausdorff": {
+                "status": "unbounded"
+              },
+              "boundary_precision": {
+                "denominator": 0,
+                "numerator": 0,
+                "reason": "no_predicted_boundary",
+                "status": "not_applicable"
+              },
+              "boundary_recall": {
+                "denominator": 2,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "epoch_index": 0,
+              "failure_region_iou": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "minimal_failing_point_recovery": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "status": "computed"
+            }
+          ],
+          "first_exact_boundary": {
+            "status": "not_reached"
+          }
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_analysis",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22",
+        "trial_sha256": "7513142b8ad51683c532c5a67908f1ad294c5f32bca93e11d144ed034a70e0db",
+        "unique_bad_queries": 2
+      },
+      "selection_trace": [
+        [
+          "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+          "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+        ]
+      ],
+      "trial_id": "random_gpu"
+    },
+    {
+      "accounting": {
+        "bad_search_state_evals": 2,
+        "batch_launches": 1,
+        "cycle_evals": 46,
+        "duplicate_state_evals": 0,
+        "fixed_confirmation_state_evals": 0,
+        "scheduled_state_evals": 2,
+        "unique_state_evals": 2,
+        "wall_time_ns": 1165542289
+      },
+      "backend": {
+        "backend_id": "gpu",
+        "executor_identity": "ibex2188-gpu-runner:v1",
+        "kind": "gpu",
+        "resident_width": 2
+      },
+      "fixed_confirmations": [],
+      "observation_trace": [
+        [
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+            ],
+            "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+          },
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+            ],
+            "point_id": "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+          }
+        ]
+      ],
+      "policy_analysis": {
+        "budget_logical_bad_queries": 2,
+        "completion_status": "budget_reached",
+        "duplicate_bad_queries": 0,
+        "epoch_count": 1,
+        "first_bracket": {
+          "status": "not_reached"
+        },
+        "first_violation": {
+          "status": "not_reached"
+        },
+        "ground_truth_sha256": "3b351ebcf8dcd812a947ebdb6ea452ebd6e5baa41c6bc28fb9936335d71317e2",
+        "logical_bad_queries": 2,
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {
+            "strata_axes": [
+              "fault_enable"
+            ]
+          },
+          "kind": "stratified",
+          "seed_sha256": "df3ee25aeda706ed9d9fa633d5071c2331bfe1594c535758c2a50e1cd5e4874b"
+        },
+        "prediction_metrics": {
+          "epochs": [
+            {
+              "boundary_hausdorff": {
+                "status": "unbounded"
+              },
+              "boundary_precision": {
+                "denominator": 0,
+                "numerator": 0,
+                "reason": "no_predicted_boundary",
+                "status": "not_applicable"
+              },
+              "boundary_recall": {
+                "denominator": 2,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "epoch_index": 0,
+              "failure_region_iou": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "minimal_failing_point_recovery": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "status": "computed"
+            }
+          ],
+          "first_exact_boundary": {
+            "status": "not_reached"
+          }
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_analysis",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22",
+        "trial_sha256": "a44fde336e17a36d163a0c975cd82ae882a8fa8b01f79e463e0670b18a2945e7",
+        "unique_bad_queries": 2
+      },
+      "selection_trace": [
+        [
+          "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "point:v1:39641e789b43093f764900a215a6061004c827afe48fe5249774d89889b29727"
+        ]
+      ],
+      "trial_id": "stratified_gpu"
+    },
+    {
+      "accounting": {
+        "bad_search_state_evals": 2,
+        "batch_launches": 1,
+        "cycle_evals": 46,
+        "duplicate_state_evals": 0,
+        "fixed_confirmation_state_evals": 0,
+        "scheduled_state_evals": 2,
+        "unique_state_evals": 2,
+        "wall_time_ns": 1568152917
+      },
+      "backend": {
+        "backend_id": "gpu",
+        "executor_identity": "ibex2188-gpu-runner:v1",
+        "kind": "gpu",
+        "resident_width": 2
+      },
+      "fixed_confirmations": [],
+      "observation_trace": [
+        [
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+            ],
+            "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+          },
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+            ],
+            "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+          }
+        ]
+      ],
+      "policy_analysis": {
+        "budget_logical_bad_queries": 2,
+        "completion_status": "budget_reached",
+        "duplicate_bad_queries": 0,
+        "epoch_count": 1,
+        "first_bracket": {
+          "status": "not_reached"
+        },
+        "first_violation": {
+          "status": "not_reached"
+        },
+        "ground_truth_sha256": "3b351ebcf8dcd812a947ebdb6ea452ebd6e5baa41c6bc28fb9936335d71317e2",
+        "logical_bad_queries": 2,
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {
+            "axis": "load_response_delay_cycles"
+          },
+          "kind": "ordered_refinement",
+          "seed_sha256": "ab991d2efc1e759832912f9a9d9892a7d24fdd95fc3532de0a1423e9ee16d16b"
+        },
+        "prediction_metrics": {
+          "epochs": [
+            {
+              "boundary_hausdorff": {
+                "status": "unbounded"
+              },
+              "boundary_precision": {
+                "denominator": 0,
+                "numerator": 0,
+                "reason": "no_predicted_boundary",
+                "status": "not_applicable"
+              },
+              "boundary_recall": {
+                "denominator": 2,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "epoch_index": 0,
+              "failure_region_iou": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "minimal_failing_point_recovery": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "status": "computed"
+            }
+          ],
+          "first_exact_boundary": {
+            "status": "not_reached"
+          }
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_analysis",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22",
+        "trial_sha256": "069fd201e85b6703ebedeaa777947a9e5482b6994ae69d35861f8ac880d4d9fb",
+        "unique_bad_queries": 2
+      },
+      "selection_trace": [
+        [
+          "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+        ]
+      ],
+      "trial_id": "ordered_refinement_gpu"
+    },
+    {
+      "accounting": {
+        "bad_search_state_evals": 2,
+        "batch_launches": 2,
+        "cycle_evals": 69,
+        "duplicate_state_evals": 0,
+        "fixed_confirmation_state_evals": 1,
+        "scheduled_state_evals": 3,
+        "unique_state_evals": 3,
+        "wall_time_ns": 2715498515
+      },
+      "backend": {
+        "backend_id": "gpu",
+        "executor_identity": "ibex2188-gpu-runner:v1",
+        "kind": "gpu",
+        "resident_width": 2
+      },
+      "fixed_confirmations": [
+        {
+          "epoch_index": 0,
+          "fixed_oracle": 0,
+          "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+        }
+      ],
+      "observation_trace": [
+        [
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+            ],
+            "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+          },
+          {
+            "bad_oracle": 1,
+            "coverage_feature_ids": [
+              "coverage:point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+            ],
+            "point_id": "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+          }
+        ]
+      ],
+      "policy_analysis": {
+        "budget_logical_bad_queries": 2,
+        "completion_status": "budget_reached",
+        "duplicate_bad_queries": 0,
+        "epoch_count": 1,
+        "first_bracket": {
+          "status": "not_reached"
+        },
+        "first_violation": {
+          "epoch_index": 0,
+          "logical_bad_queries": 2,
+          "status": "reached"
+        },
+        "ground_truth_sha256": "3b351ebcf8dcd812a947ebdb6ea452ebd6e5baa41c6bc28fb9936335d71317e2",
+        "logical_bad_queries": 2,
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {},
+          "kind": "novelty_boundary_guided",
+          "seed_sha256": "4f13f45e2e98e1419cf73adbec1e4e7fbea61955fcbdc3d04714afa2dd4c17f9"
+        },
+        "prediction_metrics": {
+          "epochs": [
+            {
+              "boundary_hausdorff": {
+                "ordinal_distance": 0,
+                "status": "computed"
+              },
+              "boundary_precision": {
+                "denominator": 2,
+                "numerator": 2,
+                "status": "computed",
+                "value": 1.0
+              },
+              "boundary_recall": {
+                "denominator": 2,
+                "numerator": 2,
+                "status": "computed",
+                "value": 1.0
+              },
+              "epoch_index": 0,
+              "failure_region_iou": {
+                "denominator": 1,
+                "numerator": 1,
+                "status": "computed",
+                "value": 1.0
+              },
+              "minimal_failing_point_recovery": {
+                "denominator": 1,
+                "numerator": 1,
+                "status": "computed",
+                "value": 1.0
+              },
+              "status": "computed"
+            }
+          ],
+          "first_exact_boundary": {
+            "epoch_index": 0,
+            "logical_bad_queries": 2,
+            "status": "reached"
+          }
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_analysis",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22",
+        "trial_sha256": "f280c6eb22c7b8b4e66246fb680e945c975d6d0ce5a67ecbb057cd477a356630",
+        "unique_bad_queries": 2
+      },
+      "selection_trace": [
+        [
+          "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b",
+          "point:v1:95a1749bf79e8479e0cbac2c20ff2ecf3f6c5058b9b2cbe48087a034c1310e0c"
+        ]
+      ],
+      "trial_id": "novelty_gpu"
+    },
+    {
+      "accounting": {
+        "bad_search_state_evals": 2,
+        "batch_launches": 2,
+        "cycle_evals": 46,
+        "duplicate_state_evals": 0,
+        "fixed_confirmation_state_evals": 0,
+        "scheduled_state_evals": 2,
+        "unique_state_evals": 2,
+        "wall_time_ns": 2752759904
+      },
+      "backend": {
+        "backend_id": "cpu",
+        "executor_identity": "ibex2188-cpu-runner:v1",
+        "kind": "cpu",
+        "resident_width": 1
+      },
+      "fixed_confirmations": [],
+      "observation_trace": [
+        [
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+            ],
+            "point_id": "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9"
+          },
+          {
+            "bad_oracle": 0,
+            "coverage_feature_ids": [
+              "coverage:point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+            ],
+            "point_id": "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+          }
+        ]
+      ],
+      "policy_analysis": {
+        "budget_logical_bad_queries": 2,
+        "completion_status": "budget_reached",
+        "duplicate_bad_queries": 0,
+        "epoch_count": 1,
+        "first_bracket": {
+          "status": "not_reached"
+        },
+        "first_violation": {
+          "status": "not_reached"
+        },
+        "ground_truth_sha256": "3b351ebcf8dcd812a947ebdb6ea452ebd6e5baa41c6bc28fb9936335d71317e2",
+        "logical_bad_queries": 2,
+        "policy": {
+          "algorithm_version": 1,
+          "configuration": {},
+          "kind": "random",
+          "seed_sha256": "e474b9a14b2bc686bedf33243cdcfb7c2b80e236a12d5423cf18372ba956e9d2"
+        },
+        "prediction_metrics": {
+          "epochs": [
+            {
+              "boundary_hausdorff": {
+                "status": "unbounded"
+              },
+              "boundary_precision": {
+                "denominator": 0,
+                "numerator": 0,
+                "reason": "no_predicted_boundary",
+                "status": "not_applicable"
+              },
+              "boundary_recall": {
+                "denominator": 2,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "epoch_index": 0,
+              "failure_region_iou": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "minimal_failing_point_recovery": {
+                "denominator": 1,
+                "numerator": 0,
+                "status": "computed",
+                "value": 0.0
+              },
+              "status": "computed"
+            }
+          ],
+          "first_exact_boundary": {
+            "status": "not_reached"
+          }
+        },
+        "reconstructor": {
+          "algorithm_version": 1,
+          "kind": "nearest_observed_graph"
+        },
+        "requested_count": 2,
+        "schema_version": 1,
+        "surface": "rtl_boundary_policy_analysis",
+        "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22",
+        "trial_sha256": "7513142b8ad51683c532c5a67908f1ad294c5f32bca93e11d144ed034a70e0db",
+        "unique_bad_queries": 2
+      },
+      "selection_trace": [
+        [
+          "point:v1:2869316dcbeea128848a1e7cd8ecafa29c621e4b6bc878cd476ca8ce4aa637b9",
+          "point:v1:fb32334d09626bbb885fa6ad8cfa7ef8356c7121e071bc13f43f2fe482a40d4b"
+        ]
+      ],
+      "trial_id": "random_cpu"
+    }
+  ],
+  "verified_identity": {
+    "action_domain_sha256": "b048b443ecacb4a175926c14eea634837930413710202af2636f79342ffce6f8",
+    "experiment_id": "ibex2188-boundary-v1",
+    "point_count": 4,
+    "reconstructor": {
+      "algorithm_version": 1,
+      "kind": "nearest_observed_graph"
+    },
+    "sweep_space_sha256": "781a94cd68240a327a75139341938a0cb56c19e66c3e9ea6729fe484a5f89b22",
+    "target": {
+      "checkpoint_identity": "directed_load_dependent_branch_one_cycle_response_v1",
+      "ip": "ibex_core",
+      "issue": "https://github.com/lowRISC/ibex/issues/2188",
+      "oracle_field": "oracle_violation",
+      "oracle_identity": "ibex2188.ecc_read_error_requires_major_alert_when_no_wb_forwarding.v1",
+      "revisions": {
+        "bad": "668233699df9ec2a40413e69e0de0a5b10185980",
+        "fixed": "9e4a950aa6aa0e20eb638aeeb78743d4a9ddaaeb"
+      },
+      "semantic_manifest_sha256": {
+        "bad": "d7ea635c0e1c71c8df445a1f641420a057d17e88acd29b35190c70965d90a38e",
+        "fixed": "4bcee9756dcfb4b5a159114235227dcdfb00ada25298c376115bdce6b54b8bee"
+      },
+      "semantic_observables": [
+        "rf_read_enable",
+        "rf_wb_match",
+        "rf_write_wb",
+        "rf_ecc_error_id",
+        "instruction_valid_id",
+        "alert_major_internal"
+      ],
+      "target_id": "ibex2188"
+    }
+  }
+}

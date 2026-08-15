@@ -1,0 +1,46 @@
+{
+  "checkpoint_identity": "directed_load_dependent_branch_one_cycle_response_v1",
+  "observables": [
+    {
+      "name": "rf_read_enable",
+      "semantic_id": "ibex2188_ecc_temporal_tb.rf_read_enable",
+      "width_bits": 1
+    },
+    {
+      "name": "rf_wb_match",
+      "semantic_id": "ibex2188_ecc_temporal_tb.rf_wb_match",
+      "width_bits": 1
+    },
+    {
+      "name": "rf_write_wb",
+      "semantic_id": "ibex2188_ecc_temporal_tb.rf_write_wb",
+      "width_bits": 1
+    },
+    {
+      "name": "rf_ecc_error_id",
+      "semantic_id": "ibex2188_ecc_temporal_tb.rf_ecc_error_id",
+      "width_bits": 1
+    },
+    {
+      "name": "instruction_valid_id",
+      "semantic_id": "ibex2188_ecc_temporal_tb.instruction_valid_id",
+      "width_bits": 1
+    },
+    {
+      "name": "alert_major_internal",
+      "semantic_id": "ibex2188_ecc_temporal_tb.alert_major_internal",
+      "width_bits": 1
+    },
+    {
+      "name": "oracle_violation",
+      "semantic_id": "ibex2188_ecc_temporal_tb.oracle_violation",
+      "width_bits": 1
+    }
+  ],
+  "oracle_identity": "ibex2188.ecc_read_error_requires_major_alert_when_no_wb_forwarding.v1",
+  "revision_label": "bad",
+  "revision_sha": "668233699df9ec2a40413e69e0de0a5b10185980",
+  "schema_version": 1,
+  "surface": "rtl_boundary_semantic_manifest",
+  "target_id": "ibex2188"
+}
