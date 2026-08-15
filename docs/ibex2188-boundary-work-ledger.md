@@ -37,6 +37,32 @@ subcase is the second disjunct: `rf_rd_wb_match=1` and `rf_write_wb=0`.
 - `REJECTED_CURRENT_CONTRACT`: does not currently prevent the benchmark
   Contract from being proven.
 
+## ASIC/RTL verification essentials for this benchmark
+
+This benchmark covers RTL verification evidence, not tapeout signoff. The
+required ASIC-design inputs are therefore the items needed to prove a
+reproducible local simulation Contract:
+
+- pinned design authority: public issue, bad/fixed revisions, RTL
+  configuration, checkpoint, oracle identity, and semantic observables;
+- deterministic stimulus surface: finite sweep axes, canonical point IDs, and
+  a repository-defined runner or externally produced evidence profile;
+- independent correctness signals: CPU/GPU semantic equality, oracle violation,
+  and coverage or novelty features recorded as separate facts;
+- complete bad/fixed comparison: every admitted point has paired bad/fixed
+  observations and fixed-revision disappearance is recomputed, not asserted;
+- boundary reconstruction: pass/fail points, adjacent boundary edges, failure
+  components, and applicable minimal failing points are derived from raw
+  observations;
+- accounting separation: selector policy, backend resident execution, launch
+  timing, and wall time remain independently attributable; and
+- fail-closed provenance: manifests, reports, graphs, profiles, and hashes are
+  validated before a `pass` result is admitted.
+
+Physical-design signoff, synthesis QoR, STA, DFT, CDC signoff, DRC/LVS, power
+closure, and gate-level timing are outside this benchmark Contract unless a
+future target explicitly makes one of them part of the oracle.
+
 ## Completion Contract
 
 Complete #2188 only after a finite, source-justified sweep has paired CPU/GPU
@@ -53,7 +79,7 @@ provenance and accounting gates.
 | I02 | ECC-capable, writeback-stage configuration pinned | `PROVEN` | `ibex_configs.yaml` `opentitan`; `ibex_top.sv` derives `RegFileECC` from `SecureIbex` | Runner must build this configuration unchanged. |
 | I03 | Independent alert oracle and raw observables defined | `PROVEN` | Existing `core_ibex_rf_intg_test` injects ECC read-data corruption and checks `alert_major_internal_o` under the corrected predicate | Directed wrapper must expose the projection verbatim. |
 | I04 | Deterministic checkpoint and program/memory harness | `PROVEN` | `run_ibex2188_cpu_regression.sh` compiled a local `ibex_core` wrapper at both pinned revisions; observation SHA `5ce107018362183af088d4759e492afa8c7bb965754b1517d6e50a3f4dda06d8` records bad violation `1` and fixed violation `0` | GPU adapter must use the same checkpoint semantics. |
-| I05 | Finite sweep axes and deterministic point IDs | `PENDING_EXTERNAL` | Candidate axes are source-justified, but values are intentionally unset | External experiment Contract declares only wrapper-controlled values. |
+| I05 | Finite sweep axes and deterministic point IDs | `PROVEN` | Two-point `fault_enable={disabled,guarded_bit0}` CPU grid, canonical sweep SHA `02933b99491bfbe4a66fedb92fec519d93a01cad9f5479fea285b37dcc60cfba`; the values are exactly the wrapper's no-fault control and guarded bit-0 fault | GPU must execute this grid unchanged. |
 | I06 | CPU/GPU paired enumeration and semantic manifests | `PENDING_EXTERNAL` | Sidecar admission surfaces are proven by #10818 | Runner emits paired per-point observations/manifests. |
 | I07 | Ground truth, selector replay, metrics, report, and profile | `PENDING_EXTERNAL` | Target-independent sidecar surfaces are proven by #10818 | Evidence passes sidecar adjudication. |
 
